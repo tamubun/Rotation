@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8' />
+<title>サイトタイトル</title>
+<meta name='viewport' content='width=device-width, initial-scale=1' />
+<link rel='stylesheet' href='/css/jquery.mobile-1.3.2.min.css' />
+<script src='/js/jquery-1.10.2.min.js'></script>
+<script src='/js/jquery.mobile-1.3.2.min.js'></script>
+<script src='/js/three.min.js'></script>
+<script src='/js/TrackballControls.js'></script>
+<script src='rotation.js'></script>
+</head>
+<body>
+<div data-role='page'>
+  <div data-role='content'>
+    <div id='arena' style='width: 100%; height: 600px;'></div>
+    <form>
+      <label for='radius'>半径:</label>
+      <input name='radius' id='radius' min='0.1' step='0.1' max='3' value='0.2' type='range'>
+      <label for='height'>高さ:</label>
+      <input name='height' id='height' min='0.1' step='0.1' max='3' value='1.0' type='range'>
+      <label for='theta'>角度:</label>
+      <input name='theta' id='theta' min='0' max='90' value='5' type='range'>
+      <label for='l'>角運動量:</label>
+      <input name='l' id='l' min='0' step='0.1' max='2' value='1.0' type='range'>
+    </form>
+  </div>
+</div>
+</body>
+</html>
