@@ -35,12 +35,14 @@ function init() {
   scene.add(light);
   scene.add(new THREE.AmbientLight(0x404040));
 
-  var material = new THREE.MeshLambertMaterial(
-    { ambient: 0xbbbbbb, color: 0x335577 });
-
   cylinder = new THREE.Mesh(
-    new THREE.CylinderGeometry(1, 1, 1, 20, 1), material );
-  cylinder.position.set( 0, 0, 0 );
+    new THREE.CylinderGeometry(1, 1, 1, 20, 1),
+    new THREE.MeshLambertMaterial({ ambient: 0xbbbbbb, color: 0x335577 }));
+  var mark = new THREE.Mesh(
+    new THREE.CubeGeometry(1.005, 1.005, 0.1),
+    new THREE.MeshLambertMaterial({ ambient: 0xbbbbbb, color: 0xff2222 }));
+  mark.position.x = 0.5;
+  cylinder.add(mark);
   newSettings();
   scene.add( cylinder );
 
