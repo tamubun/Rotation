@@ -39,7 +39,7 @@ function init() {
   scene.add(new THREE.AmbientLight(0x404040));
 
   cylinder = new THREE.Mesh(
-    new THREE.CylinderGeometry(1, 1, 1, 20, 1),
+    new THREE.CylinderGeometry(1, 1, 1, 30, 1),
     new THREE.MeshLambertMaterial({ ambient: 0xbbbbbb, color: 0x335577 }));
   var mark = new THREE.Mesh(
     new THREE.CubeGeometry(1.005, 1.005, 0.1),
