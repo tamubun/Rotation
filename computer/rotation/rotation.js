@@ -33,10 +33,12 @@ function init() {
   controls.dynamicDampingFactor = 0.3;
   controls.enabled = true;
 
-  var light = new THREE.DirectionalLight(0xffffff);
-  light.position.set(0, 1, -1);
-  scene.add(light);
   scene.add(new THREE.AmbientLight(0x404040));
+  var light = new THREE.DirectionalLight(0xffffff);
+  light.position.set(-50, 200, -100);
+  light.castShadow = true;
+  light.shadowMapWidth = 2048;
+  light.shadowMapHeight = 2048;  scene.add(light);
 
   cylinder = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 1, 30, 1),
@@ -47,11 +49,23 @@ function init() {
   mark.position.x = 0.5;
   cylinder.add(mark);
   cylinder.useQuaternion = true;
+  cylinder.castShadow = true;
   newSettings();
   scene.add( cylinder );
 
+  var ground_material =
+    new THREE.MeshLambertMaterial({ ambient: 0xbbbbbb, color: 0xaa7744 });
+  ground_material.side = THREE.DoubleSide;
+  var ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(700, 700), ground_material);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -200;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(arena.innerWidth(), arena.innerHeight());
+  renderer.shadowMapEnabled = true;
   $('#arena').append(renderer.domElement);
 }
 
