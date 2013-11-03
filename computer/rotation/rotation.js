@@ -3,7 +3,7 @@ var camera, scene, renderer, controls;
 
 var radius, height, theta, mom, omega_phi, omega_psi;
 var I1, I2, I3, E, scale = 70;
-var cylinder, ellipse, plane, contact;
+var cylinder, ellipse, plane, contact, vect_l, vect_omega;
 
 function newSettings() {
   radius = Number($('#radius').val());
@@ -28,6 +28,9 @@ function newConfigs() {
     ellipse.visible = plane.visible = contact.visible = true;
   } else {
     ellipse.visible = plane.visible = contact.visible = false;
+  }
+  if ( $('#vectors').prop('checked') ) {
+  } else {
   }
 }
 
