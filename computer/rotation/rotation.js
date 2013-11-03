@@ -35,11 +35,9 @@ function newConfigs() {
   if ( $('#vectors').prop('checked') ) {
     vect_l.line.visible = vect_l.cone.visible =
     vect_omega.line.visible = vect_omega.cone.visible = true;
-    cylinder.material.opacity = cylinder.children[0].material.opacity = 0.8;
   } else {
     vect_l.line.visible = vect_l.cone.visible =
     vect_omega.line.visible = vect_omega.cone.visible = false;
-    cylinder.material.opacity = cylinder.children[0].material.opacity = 1.0;
   }
 }
 
@@ -71,12 +69,12 @@ function init() {
   cylinder = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 1, 30, 1),
     new THREE.MeshLambertMaterial(
-      { ambient: 0xbbbbbb, color: 0x335577, transparent: true, opacity: 1.0 }));
+      { ambient: 0xbbbbbb, color: 0x335577, transparent: true, opacity: 0.8 }));
   var mark = new THREE.Mesh(
-    new THREE.CubeGeometry(1.005, 1.005, 0.1),
+    new THREE.CubeGeometry(0.07, 1.005, 0.1),
     new THREE.MeshLambertMaterial(
-      { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 1.0 }));
-  mark.position.x = 0.5;
+      { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 0.8 }));
+  mark.position.x = 0.98;
   cylinder.add(mark);
   cylinder.useQuaternion = true;
   cylinder.castShadow = true;
