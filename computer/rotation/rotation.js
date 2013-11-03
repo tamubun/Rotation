@@ -3,7 +3,7 @@ var camera, scene, renderer, controls;
 
 var radius, height, theta, mom, omega_phi, omega_psi;
 var I1, I2, I3, E, scale = 70;
-var cylinder, ellipse, plane, contact, vect_l, vect_omega;
+var cylinder, poinsot, plane, contact, vect_l, vect_omega, binet, binet_s;
 
 function newSettings() {
   radius = Number($('#radius').val());
@@ -20,17 +20,31 @@ function newSettings() {
   var omega_3 = omega_phi * Math.cos(theta) + omega_psi,
       A = omega_phi * Math.sin(theta);
   E = 0.5 * ( I1 * A * A + I3 * omega_3 * omega_3 );
-  ellipse.scale.set(scale / Math.sqrt(I1), scale / Math.sqrt(I3), scale / Math.sqrt(I1));
-  plane.position.y = ellipse.position.y + scale * Math.sqrt(2 * E) / mom;
+  poinsot.scale.set(
+    scale / Math.sqrt(I1),
+    scale / Math.sqrt(I3),
+    scale / Math.sqrt(I1));
+  plane.position.y = poinsot.position.y + scale * Math.sqrt(2 * E) / mom;
 
-  vect_l.scale.set(mom * 80, mom * 80, mom * 80);
+  binet.scale.set(
+    scale * Math.sqrt(2 * E * I1),
+    scale * Math.sqrt(2 * E * I3),
+    scale * Math.sqrt(2 * E * I1));
+  binet_s.scale.set(mom * scale, mom * scale, mom * scale);
+
+  vect_l.scale.set(mom * scale, mom * scale, mom * scale);
 }
 
 function newConfigs() {
-  if ( $('#ellipse').prop('checked') ) {
-    ellipse.visible = plane.visible = contact.visible = true;
+  if ( $('#poinsot').prop('checked') ) {
+    poinsot.visible = plane.visible = contact.visible = true;
   } else {
-    ellipse.visible = plane.visible = contact.visible = false;
+    poinsot.visible = plane.visible = contact.visible = false;
+  }
+  if ( $('#binet').prop('checked') ) {
+    binet.visible = binet_s.visible = true;
+  } else {
+    binet.visible = binet_s.visible = false;
   }
   if ( $('#vectors').prop('checked') ) {
     vect_l.line.visible = vect_l.cone.visible =
@@ -91,13 +105,13 @@ function init() {
   ground.receiveShadow = true;
   scene.add(ground);
 
-  ellipse = new THREE.Mesh(
+  poinsot = new THREE.Mesh(
     new THREE.SphereGeometry(1, 16, 20, Math.PI, Math.PI*1.994),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 0.2 }));
-  ellipse.position.y = cylinder.position.y;
-  ellipse.quaternion = cylinder.quaternion;
-  scene.add(ellipse);
+  poinsot.position.y = cylinder.position.y;
+  poinsot.quaternion = cylinder.quaternion;
+  scene.add(poinsot);
 
   var plane_material =
     new THREE.MeshLambertMaterial(
@@ -113,6 +127,21 @@ function init() {
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0xff2222 }));
   scene.add(contact);
+
+  binet = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 16, 20),
+    new THREE.MeshLambertMaterial(
+      { ambient: 0xbbbbbb, color: 0x2222ff, transparent: true, opacity: 0.2 }));
+  binet.position.y = cylinder.position.y;
+  binet.quaternion = cylinder.quaternion;
+  scene.add(binet);
+
+  binet_s = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 16, 20),
+    new THREE.MeshLambertMaterial(
+      { ambient: 0xbbbbbb, color: 0x22ffaa, transparent: true, opacity: 0.2 }));
+  binet_s.position.y = cylinder.position.y;
+  scene.add(binet_s);
 
   vect_l = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),
@@ -158,9 +187,9 @@ function animate() {
   omega.applyQuaternion(cylinder.quaternion);
   contact.position.set(
     scale * omega.x / Math.sqrt(2 * E),
-    scale * omega.y / Math.sqrt(2 * E) + ellipse.position.y,
+    scale * omega.y / Math.sqrt(2 * E) + poinsot.position.y,
     scale * omega.z / Math.sqrt(2 * E));
-  vect_omega.setLength(9 * omega.length());
+  vect_omega.setLength(7 * omega.length());
   vect_omega.setDirection(omega.normalize()); // omega changes
 
   controls.update();
