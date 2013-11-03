@@ -12,6 +12,7 @@ function newSettings() {
   mom = Number($('#mom').val());
   cylinder.scale.set(radius * 50, height * 50, radius * 50);
   cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+
   I1 = I2 = radius * radius / 4.0 + height * height / 12.0;
   I3 = radius * radius / 2.0;
   omega_phi = mom / I1;
@@ -21,6 +22,8 @@ function newSettings() {
   E = 0.5 * ( I1 * A * A + I3 * omega_3 * omega_3 );
   ellipse.scale.set(scale / Math.sqrt(I1), scale / Math.sqrt(I3), scale / Math.sqrt(I1));
   plane.position.y = ellipse.position.y + scale * Math.sqrt(2 * E) / mom;
+
+  vect_l.scale.set(mom * 80, mom * 80, mom * 80);
 }
 
 function newConfigs() {
@@ -30,7 +33,13 @@ function newConfigs() {
     ellipse.visible = plane.visible = contact.visible = false;
   }
   if ( $('#vectors').prop('checked') ) {
+    vect_l.line.visible = vect_l.cone.visible =
+    vect_omega.line.visible = vect_omega.cone.visible = true;
+    cylinder.material.opacity = cylinder.children[0].material.opacity = 0.8;
   } else {
+    vect_l.line.visible = vect_l.cone.visible =
+    vect_omega.line.visible = vect_omega.cone.visible = false;
+    cylinder.material.opacity = cylinder.children[0].material.opacity = 1.0;
   }
 }
 
@@ -62,10 +71,11 @@ function init() {
   cylinder = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 1, 30, 1),
     new THREE.MeshLambertMaterial(
-      { ambient: 0xbbbbbb, color: 0x335577 }));
+      { ambient: 0xbbbbbb, color: 0x335577, transparent: true, opacity: 1.0 }));
   var mark = new THREE.Mesh(
     new THREE.CubeGeometry(1.005, 1.005, 0.1),
-    new THREE.MeshLambertMaterial({ ambient: 0xbbbbbb, color: 0xff2222 }));
+    new THREE.MeshLambertMaterial(
+      { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 1.0 }));
   mark.position.x = 0.5;
   cylinder.add(mark);
   cylinder.useQuaternion = true;
@@ -106,6 +116,17 @@ function init() {
       { ambient: 0xbbbbbb, color: 0xff2222 }));
   scene.add(contact);
 
+  vect_l = new THREE.ArrowHelper(
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(0, cylinder.position.y, 0),
+    1, 0x22aa55);
+  scene.add(vect_l);
+  vect_omega = new THREE.ArrowHelper(
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(0, cylinder.position.y, 0),
+    1, 0xaaaa22);
+  scene.add(vect_omega);
+
   newSettings();
   newConfigs();
 
@@ -141,6 +162,8 @@ function animate() {
     scale * omega.x / Math.sqrt(2 * E),
     scale * omega.y / Math.sqrt(2 * E) + ellipse.position.y,
     scale * omega.z / Math.sqrt(2 * E));
+  vect_omega.setLength(9 * omega.length());
+  vect_omega.setDirection(omega.normalize()); // omega changes
 
   controls.update();
   renderer.render(scene, camera);
