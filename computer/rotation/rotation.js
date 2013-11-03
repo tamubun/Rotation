@@ -2,8 +2,8 @@
 var camera, scene, renderer, controls;
 
 var radius, height, theta, mom, omega_phi, omega_psi;
-var I1, I2, I3;
-var cylinder, ellipse, plane;
+var I1, I2, I3, E, scale = 70;
+var cylinder, ellipse, plane, contact;
 
 function newSettings() {
   radius = Number($('#radius').val());
@@ -17,24 +17,24 @@ function newSettings() {
   omega_phi = mom / I1;
   omega_psi = -(I3 - I1)/I3 * Math.cos(theta) * omega_phi;
   var omega_3 = omega_phi * Math.cos(theta) + omega_psi,
-      A = omega_phi * Math.sin(theta),
-      E = 0.5 * ( I1 * A * A + I3 * omega_3 * omega_3 ),
-      scale = 70;
+      A = omega_phi * Math.sin(theta);
+  E = 0.5 * ( I1 * A * A + I3 * omega_3 * omega_3 );
   ellipse.scale.set(scale / Math.sqrt(I1), scale / Math.sqrt(I3), scale / Math.sqrt(I1));
   plane.position.y = ellipse.position.y + scale * Math.sqrt(2 * E) / mom;
 }
 
 function newConfigs() {
   if ( $('#ellipse').prop('checked') ) {
-    ellipse.visible = plane.visible = true;
+    ellipse.visible = plane.visible = contact.visible = true;
   } else {
-    ellipse.visible = plane.visible = false;
+    ellipse.visible = plane.visible = contact.visible = false;
   }
 }
 
 function init() {
   var arena = $('#arena');
   scene = new THREE.Scene();
+
   camera = new THREE.PerspectiveCamera(
     45, arena.innerWidth() / arena.innerHeight(), 1, 2000);
   camera.position.set(0, 200, -800);
@@ -81,7 +81,7 @@ function init() {
   scene.add(ground);
 
   ellipse = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 16, 20),
+    new THREE.SphereGeometry(1, 16, 20, Math.PI, Math.PI*1.994),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 0.2 }));
   ellipse.position.y = cylinder.position.y;
@@ -96,6 +96,12 @@ function init() {
     new THREE.PlaneGeometry(600, 600), plane_material);
   plane.rotation.x = -Math.PI / 2;
   scene.add(plane);
+
+  contact = new THREE.Mesh(
+    new THREE.SphereGeometry(3),
+    new THREE.MeshLambertMaterial(
+      { ambient: 0xbbbbbb, color: 0xff2222 }));
+  scene.add(contact);
 
   newSettings();
   newConfigs();
@@ -119,6 +125,19 @@ function animate() {
   q2.multiply(q1);
   cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
   cylinder.quaternion.multiply(q2);
+
+  var q = cylinder.quaternion.clone(),
+      omega = new THREE.Vector3(0, mom, 0);
+  q.inverse();
+  omega.applyQuaternion(q);
+  omega.x /= I1;
+  omega.y /= I3;
+  omega.z /= I1;
+  omega.applyQuaternion(cylinder.quaternion);
+  contact.position.set(
+    scale * omega.x / Math.sqrt(2 * E),
+    scale * omega.y / Math.sqrt(2 * E) + ellipse.position.y,
+    scale * omega.z / Math.sqrt(2 * E));
 
   controls.update();
   renderer.render(scene, camera);
