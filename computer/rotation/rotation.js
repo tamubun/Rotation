@@ -2,7 +2,7 @@
 var camera, scene, renderer, controls;
 
 var radius, height, theta, mom, omega_phi, omega_psi;
-var I1, I2, I3, E, scale = 70;
+var I1, I2, I3, E, scale = 70, shift_x;
 var cylinder, poinsot, plane, contact, vect_l, vect_omega, binet, binet_s;
 
 function newSettings() {
@@ -53,6 +53,12 @@ function newConfigs() {
     vect_l.line.visible = vect_l.cone.visible =
     vect_omega.line.visible = vect_omega.cone.visible = false;
   }
+
+  shift_x = $('#shift').prop('checked') ? 200 : 0;
+  poinsot.position.x = plane.position.x =
+  binet.position.x = binet_s.position.x = 
+  vect_l.position.x = vect_omega.position.x = shift_x;
+  contact.position.x += shift_x;
 }
 
 function init() {
@@ -186,7 +192,7 @@ function animate() {
   omega.z /= I1;
   omega.applyQuaternion(cylinder.quaternion);
   contact.position.set(
-    scale * omega.x / Math.sqrt(2 * E),
+    scale * omega.x / Math.sqrt(2 * E) + shift_x,
     scale * omega.y / Math.sqrt(2 * E) + poinsot.position.y,
     scale * omega.z / Math.sqrt(2 * E));
   vect_omega.setLength(7 * omega.length());

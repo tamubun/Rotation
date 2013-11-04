@@ -16,15 +16,30 @@
   <div data-role='header'><h1>円柱の回転運動</h1></div>
   <div data-role='content'>
     <div id='arena' style='width: 100%; height: 600px;'></div>
+    <div data-role="collapsible">
+      <h5>説明</h5>
+      <p>円柱の回転運動のシミュレーターです。運動方程式の厳密解を使って計算しています。</p><p>角速度ベクトルの指す延長上に慣性楕円体と不変平面の接点があること、角運動量ベクトルの先端がBinetの楕円体と角運動量一定の球面の交わる線上に乗っていることなどを見て下さい。</p>
+      <p>シミュレーション画面上でマウスをドラッグ(左、中、右)することにより視点を動かすことが出来ます。</p>
+    </div>
     <form id='settings'>
-      <label for='radius'>半径:</label>
-      <input name='radius' id='radius' min='0.2' step='0.1' max='3' value='0.5' type='range'>
-      <label for='height'>高さ:</label>
-      <input name='height' id='height' min='0.1' step='0.1' max='7' value='2.5' type='range'>
-      <label for='theta'>傾き:</label>
-      <input name='theta' id='theta' min='0' max='90' value='15' type='range'>
-      <label for='mom'>角運動量:</label>
-      <input name='mom' id='mom' min='0' step='0.2' max='7' value='2.0' type='range'>
+      <table style='width:95%'>
+	<tr>
+	  <td style='width:5%'><label for='radius'>半径:</label></td>
+	  <td style='width:95%'><input name='radius' id='radius' min='0.2' step='0.1' max='3' value='0.5' type='range'></td>
+	</tr>
+	<tr>
+	  <td><label for='height'>高さ:</label></td>
+	  <td><input name='height' id='height' min='0.1' step='0.1' max='7' value='2.5' type='range'></td>
+	</tr>
+	<tr>
+	  <td><label for='theta'>傾き:</label></td>
+	  <td><input name='theta' id='theta' min='0' max='90' value='15' type='range'></td>
+	</tr>
+	<tr>
+	  <td><label for='mom'>角運動量:</label></td>
+	  <td><input name='mom' id='mom' min='0' step='0.2' max='7' value='2.0' type='range'></td>
+	</tr>
+      </table>
     </form>
     <form>
       <fieldset id='configs' data-role='controlgroup' data-type='horizontal'>
@@ -33,7 +48,9 @@
         <input name='poinsot' id='poinsot' type='checkbox'>
         <label for='poinsot'>慣性楕円体と不変平面</label>
         <input name='binet' id='binet' type='checkbox'>
-        <label for='binet'>Binetの楕円体と角運動量一定の球</label>
+        <label for='binet'>Binet楕円体と角運動量一定の球</label>
+        <input name='shift' id='shift' type='checkbox'>
+        <label for='shift'>原点をずらす</label>
       </fieldset>
     </form>
   </div>
