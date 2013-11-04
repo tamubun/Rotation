@@ -142,7 +142,7 @@ function init() {
   scene.add(contact);
 
   binet = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 16, 20),
+    new THREE.SphereGeometry(1, 32, 40),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x2222ff, transparent: true, opacity: 0.2 }));
   binet.position.y = cylinder.position.y;
@@ -150,7 +150,7 @@ function init() {
   scene.add(binet);
 
   binet_s = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 16, 20),
+    new THREE.SphereGeometry(1, 32, 40),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x22ffaa, transparent: true, opacity: 0.2 }));
   binet_s.position.y = cylinder.position.y;
