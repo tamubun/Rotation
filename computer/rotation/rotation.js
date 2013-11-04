@@ -3,7 +3,8 @@ var camera, scene, renderer, controls;
 
 var radius, height, theta, mom, omega_phi, omega_psi;
 var I1, I2, I3, E, scale = 70, shift_x;
-var cylinder, poinsot, plane, contact, vect_l, vect_omega, binet, binet_s;
+var cylinder, poinsot, plane, contact, vect_l, vect_omega, binet, binet_s,
+    nodes_line;
 
 function newSettings() {
   radius = Number($('#radius').val());
@@ -12,6 +13,8 @@ function newSettings() {
   mom = Number($('#mom').val());
   cylinder.scale.set(radius * 50, height * 50, radius * 50);
   cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+
+  nodes_line.scale.set(radius * 50, height * 50, radius * 50);
 
   I1 = I2 = radius * radius / 4.0 + height * height / 12.0;
   I3 = radius * radius / 2.0;
@@ -36,6 +39,9 @@ function newSettings() {
 }
 
 function newConfigs() {
+  nodes_line.visible =
+    $('#line-of-nodes').prop('checked');
+
   poinsot.visible = plane.visible = contact.visible =
     $('#poinsot').prop('checked');
   binet.visible = binet_s.visible =
@@ -98,9 +104,19 @@ function init() {
   var ground = new THREE.Mesh(
     new THREE.PlaneGeometry(600, 600), ground_material);
   ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -80;
+  ground.position.y = cylinder.position.y - 180;
   ground.receiveShadow = true;
   scene.add(ground);
+
+  var geo = new THREE.Geometry();
+  geo.vertices.push(new THREE.Vector3(1.02, 0.52, 0));
+  geo.vertices.push(new THREE.Vector3(1.02, -0.52, 0));
+  nodes_line = new THREE.Line(
+    geo,
+    new THREE.LineBasicMaterial({ color: 0x000000 }));
+  nodes_line.position.y = cylinder.position.y;
+  nodes_line.useQuaternion = true;
+  scene.add(nodes_line);
 
   poinsot = new THREE.Mesh(
     new THREE.SphereGeometry(1, 16, 20, Math.PI, Math.PI*1.994),
@@ -173,6 +189,11 @@ function animate() {
   q2.multiply(q1);
   cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
   cylinder.quaternion.multiply(q2);
+
+  q2.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+  nodes_line.rotation.set(0, phi, theta);
+  nodes_line.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
+  nodes_line.quaternion.multiply(q2);
 
   var q = cylinder.quaternion.clone(),
       omega = new THREE.Vector3(0, mom, 0);
