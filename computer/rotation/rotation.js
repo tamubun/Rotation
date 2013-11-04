@@ -86,11 +86,11 @@ function init() {
   cylinder = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 1, 30, 1),
     new THREE.MeshLambertMaterial(
-      { ambient: 0xbbbbbb, color: 0x335577, transparent: true, opacity: 0.8 }));
+      { ambient: 0xbbbbbb, color: 0x335577 }));
   var mark = new THREE.Mesh(
     new THREE.CubeGeometry(0.07, 1.005, 0.1),
     new THREE.MeshLambertMaterial(
-      { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 0.8 }));
+      { ambient: 0xbbbbbb, color: 0xff2222 }));
   mark.position.x = 0.98;
   cylinder.add(mark);
   cylinder.useQuaternion = true;
