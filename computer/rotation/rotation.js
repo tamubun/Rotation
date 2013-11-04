@@ -36,29 +36,20 @@ function newSettings() {
 }
 
 function newConfigs() {
-  if ( $('#poinsot').prop('checked') ) {
-    poinsot.visible = plane.visible = contact.visible = true;
-  } else {
-    poinsot.visible = plane.visible = contact.visible = false;
-  }
-  if ( $('#binet').prop('checked') ) {
-    binet.visible = binet_s.visible = true;
-  } else {
-    binet.visible = binet_s.visible = false;
-  }
-  if ( $('#vectors').prop('checked') ) {
-    vect_l.line.visible = vect_l.cone.visible =
-    vect_omega.line.visible = vect_omega.cone.visible = true;
-  } else {
-    vect_l.line.visible = vect_l.cone.visible =
-    vect_omega.line.visible = vect_omega.cone.visible = false;
-  }
+  poinsot.visible = plane.visible = contact.visible =
+    $('#poinsot').prop('checked');
+  binet.visible = binet_s.visible =
+    $('#binet').prop('checked');
 
-  shift_x = $('#shift').prop('checked') ? 200 : 0;
+  vect_l.line.visible = vect_l.cone.visible =
+  vect_omega.line.visible = vect_omega.cone.visible =
+    $('#vectors').prop('checked');
+
+  shift_x =
   poinsot.position.x = plane.position.x =
   binet.position.x = binet_s.position.x = 
-  vect_l.position.x = vect_omega.position.x = shift_x;
-  contact.position.x += shift_x;
+  vect_l.position.x = vect_omega.position.x =
+    $('#shift').prop('checked') ? 200 : 0;
 }
 
 function init() {
