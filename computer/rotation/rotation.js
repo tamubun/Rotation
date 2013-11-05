@@ -42,9 +42,11 @@ function newConfigs() {
   nodes_line.visible =
     $('#line-of-nodes').prop('checked');
 
-  poinsot.visible = plane.visible = contact.visible =
+  poinsot.visible = poinsot.children[0].visible =
+  plane.visible = contact.visible =
     $('#poinsot').prop('checked');
-  binet.visible = binet_s.visible =
+  binet.visible = binet.children[0].visible =
+  binet_s.visible =
     $('#binet').prop('checked');
 
   vect_l.line.visible = vect_l.cone.visible =
@@ -118,10 +120,16 @@ function init() {
   nodes_line.useQuaternion = true;
   scene.add(nodes_line);
 
+  var wireframe = new THREE.MeshBasicMaterial(
+    { color: 0xffffff, wireframe: true, transparent: true, opacity: 0.3 });
+
   poinsot = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 16, 20, Math.PI, Math.PI*1.994),
+    new THREE.SphereGeometry(1, 16, 20),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 0.2 }));
+  poinsot.add(new THREE.Mesh(
+    new THREE.SphereGeometry(1, 8, 20),
+    wireframe));
   poinsot.position.y = cylinder.position.y;
   poinsot.quaternion = cylinder.quaternion;
   scene.add(poinsot);
@@ -145,6 +153,9 @@ function init() {
     new THREE.SphereGeometry(1, 32, 40),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x2222ff, transparent: true, opacity: 0.2 }));
+  binet.add(new THREE.Mesh(
+    new THREE.SphereGeometry(1, 8, 40),
+    wireframe));
   binet.position.y = cylinder.position.y;
   binet.quaternion = cylinder.quaternion;
   scene.add(binet);
