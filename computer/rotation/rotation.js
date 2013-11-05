@@ -189,7 +189,7 @@ function init() {
 
 function animate() {
   requestAnimationFrame(animate);
-  var timer = Date.now() * 0.0004;
+  var timer = Date.now() * 0.000004 * Number($('#speed').val());
   var phi = timer * omega_phi,
       psi = timer * omega_psi;
   var q1, q2;
@@ -226,7 +226,7 @@ function animate() {
 }
 
 $(function() {
-  $('#settings input').change(newSettings);
+  $('.settings').change(newSettings);
   $('#configs input').change(newConfigs);
   init();
   animate();

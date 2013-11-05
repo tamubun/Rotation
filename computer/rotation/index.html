@@ -22,6 +22,7 @@
       <nl>
 	<li>シミュレーション画面上でマウスを左ボタン、中ボタン、右ボタンでドラッグすることにより視点を色々と動かすことが出来ます。</li>
 	<li>細長い円柱にして、傾きを90度にした時が、体操の捻りなしの宙返りです(地面が縦向きになっていると考える)。90度より少し傾きを小さくした時が、捻りを伴った宙返りに相当します。<a href="http://club.pep.ne.jp/~tamubun/computer/hineri_web/hineri_web.html">捻りシミュレーター</a>は、これよりもっと体操寄りにしたシミュレーターです。</li>
+	<li>「時の流れ」で運動をスローで再生するか早送りで再生するかを変えられます。これは、物理的なパラメーターではありません。</li>
 	<li>「角速度と角運動量」を押すと、角速度が黄色で、角運動量が緑色で表示されます。自由回転なので、角運動量は保存されているため動きません。</li>
 	<li>角速度や各種楕円体などが円柱の中に見辛いとき、「原点をずらす」を押すと、これらが円柱に重ならないようにして表示されるようになります。</li>
 	<li><a href="http://bunysmc.exblog.jp/20459663/">角運動量保存則と回転のエネルギー</a>から始まる一連の記事に、色々と詳しく書いています。</li>
@@ -30,23 +31,27 @@
 	<li>角速度ベクトルの指す延長上に慣性楕円体と不変平面の接点があること、角運動量ベクトルの先端がBinetの楕円体と角運動量一定の球面の交わる線上に乗っていることなどを見て下さい。</li>
       </nl>
     </div>
-    <form id='settings'>
-      <table style='width:95%'>
+    <form>
+      <table style='width:100%'>
 	<tr>
-	  <td style='width:5%'><label for='radius'>半径:</label></td>
-	  <td style='width:95%'><input name='radius' id='radius' min='0.2' step='0.1' max='3' value='0.5' type='range'></td>
+	  <td style='width:10%'><label for='speed'>時の流れ:</label></td>
+	  <td style='width:90%'><input name='speed' id='speed' min='1' max='100' value='50' type='range'></td>
+	</tr>
+	<tr>
+	  <td><label for='radius'>半径:</label></td>
+	  <td><input class='settings' name='radius' id='radius' min='0.2' step='0.1' max='3' value='0.5' type='range'></td>
 	</tr>
 	<tr>
 	  <td><label for='height'>高さ:</label></td>
-	  <td><input name='height' id='height' min='0.1' step='0.1' max='7' value='2.5' type='range'></td>
+	  <td><input class='settings' name='height' id='height' min='0.1' step='0.1' max='7' value='2.5' type='range'></td>
 	</tr>
 	<tr>
 	  <td><label for='theta'>傾き:</label></td>
-	  <td><input name='theta' id='theta' min='0' max='90' value='15' type='range'></td>
+	  <td><input class='settings' name='theta' id='theta' min='0' max='90' value='15' type='range'></td>
 	</tr>
 	<tr>
 	  <td><label for='mom'>角運動量:</label></td>
-	  <td><input name='mom' id='mom' min='0' step='0.2' max='7' value='2.0' type='range'></td>
+	  <td><input class='settings' name='mom' id='mom' min='0' step='0.2' max='7' value='2.0' type='range'></td>
 	</tr>
       </table>
     </form>
