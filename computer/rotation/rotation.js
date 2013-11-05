@@ -90,10 +90,10 @@ function init() {
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x335577 }));
   var mark = new THREE.Mesh(
-    new THREE.CubeGeometry(0.07, 1.005, 0.1),
+    new THREE.CubeGeometry(1.02, 1.005, 0.1),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0xff2222 }));
-  mark.position.x = 0.98;
+  mark.position.x = 0.5;
   cylinder.add(mark);
   cylinder.useQuaternion = true;
   cylinder.castShadow = true;
@@ -111,8 +111,10 @@ function init() {
   scene.add(ground);
 
   var geo = new THREE.Geometry();
-  geo.vertices.push(new THREE.Vector3(1.02, 0.52, 0));
-  geo.vertices.push(new THREE.Vector3(1.02, -0.52, 0));
+  geo.vertices.push(new THREE.Vector3(0, 0.5025, 0));
+  geo.vertices.push(new THREE.Vector3(1.02, 0.5025, 0));
+  geo.vertices.push(new THREE.Vector3(1.02, -0.5025, 0));
+  geo.vertices.push(new THREE.Vector3(0, -0.5025, 0));
   nodes_line = new THREE.Line(
     geo,
     new THREE.LineBasicMaterial({ color: 0x000000 }));
