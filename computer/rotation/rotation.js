@@ -74,7 +74,7 @@ function init() {
 
   camera = new THREE.PerspectiveCamera(
     45, arena.innerWidth() / arena.innerHeight(), 1, 2000);
-  camera.position.set(0, 200, -800);
+  camera.position.set(0, 200, -700);
   camera.lookAt( scene.position );
   controls = new THREE.TrackballControls(camera, arena[0]);
   controls.rotateSpeed = 1.0;
