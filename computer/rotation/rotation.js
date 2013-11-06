@@ -2,6 +2,7 @@
 var camera, scene, renderer, controls;
 
 var radius, height, theta, mom, omega_phi, omega_psi;
+var timer, timer_old, time_offset;
 var I1, I2, I3, E, scale = 70, shift_x;
 var cylinder, poinsot, plane, contact, vect_l, vect_omega, binet, binet_s,
     nodes_line;
@@ -187,11 +188,16 @@ function init() {
   renderer.setSize(arena.innerWidth(), arena.innerHeight());
   renderer.shadowMapEnabled = true;
   $('#arena').append(renderer.domElement);
+
+  timer_old = 0;
+  time_offset = Date.now();
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  var timer = Date.now() * 0.000004 * Number($('#speed').val());
+
+  timer =
+    timer_old + (Date.now()-time_offset) * 0.000004 * Number($('#speed').val());
   var phi = timer * omega_phi,
       psi = timer * omega_psi;
   var q1, q2;
@@ -230,6 +236,10 @@ function animate() {
 $(function() {
   $('.settings').change(newSettings);
   $('#configs input').change(newConfigs);
+  $('#speed').change(function() {
+    time_offset = Date.now();
+    timer_old = timer;
+  });
   init();
   animate();
 });
