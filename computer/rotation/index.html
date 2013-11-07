@@ -16,21 +16,6 @@
   <div data-role='header'><h1>円柱の回転運動</h1></div>
   <div data-role='content'>
     <div id='arena' style='width: 100%; height: 450px;'></div>
-    <div data-role="collapsible">
-      <h5>説明</h5>
-      <p>円柱の自由回転運動のシミュレーターです。運動方程式の厳密解を使って計算しています。姉妹編に<a href="http://club.pep.ne.jp/~tamubun/computer/hineri_web/hineri_web.html">捻りシミュレーター</a>があります。また、<a href="http://bunysmc.exblog.jp/20459663/">角運動量保存則と回転のエネルギー</a>から始まる一連の記事に、色々と詳しく書いています。</p>
-      <nl>
-	<li>シミュレーション画面上でマウスを左ボタン、中ボタン、右ボタンでドラッグすることにより視点を色々と動かすことが出来ます。</li>
-	<li>円柱上の赤線は、円柱の回転を分かり易くするように付けた目印で、円柱に貼りついています。</li>
-	<li>「時の流れ」で運動をスローで再生するか早送りで再生するかを変えられます。0にすれば、一時停止です。これは、物理的なパラメーターではありません。</li>
-	<li>「L,ω」を押すと、角運動量ベクトル<b>L</b>が緑色、角速度ベクトル<b>ω</b>が黄色で表示されます。自由回転なので、角運動量は保存されており動きません。</li>
-	<li>角速度や各種楕円体などが円柱の中に見辛いとき、「原点をずらす」を押すと、これらが円柱に重ならないようにして表示されるようになります。</li>
-	<li>「節線」は、オイラー角の文脈で使われる言葉です。もし、円柱が"嘘の回転"、つまり、円柱の対称軸を軸とする回転が無視され、対称軸だけが回転する(歳差運動)場合、円柱の赤線がどこに来るか、を表しています。<a href="http://bulletphysics.org/">Bullet physics</a>や、<a href="http://www.blender.org/education-help/tutorials/game-engine/">Blender game engine</a>などの物理エンジンでは(私が調べた時点では)、剛体の回転を、この嘘の回転でごまかしています。これでは、体操の捻りを伴った宙返りはシミュレート出来ません。</li>
-	<li>半径や高さを変えて、細長い円柱にしたり、平たい円柱にしたりして、回転運動がどうなるか見て下さい。節線を表示して、節線と赤線どちらがどちらを追い越すかなどが見所です。高さが半径の√3倍になるとき(対称軸回りの慣性モーメントと、対称軸に垂直な軸の慣性モーメントが等しくなる)が運動の変わり目で、この時、各種の楕円体が球になります。</li>
-	<li>「Poinsotの作図」を押したときに出る赤い楕円体が慣性楕円体で、その上部で接している灰色の平面が不変平面です。角速度ベクトルの指す延長上に慣性楕円体と不変平面の接点があります。この接点が慣性楕円体上に描く軌跡はポールホード、不変平面上に描く軌跡はハーポールホードと呼ばれています。</li>
-	<li>「E一定の面, |L|一定の面」を押した時は、角運動量空間内におけるエネルギー E 一定の楕円体面(Binetの楕円体)が紫色、角運動量の大きさ一定の球面が緑色で表示されます。これらの交わる線上に角運動量ベクトル<b>L</b>の先端が乗っています。</li>
-      </nl>
-    </div>
     <form>
       <table style='width:100%'>
 	<tr>
@@ -47,7 +32,7 @@
 	</tr>
 	<tr>
 	  <td><label for='theta'>傾き:</label></td>
-	  <td><input class='settings' name='theta' id='theta' min='0' max='90' value='15' type='range'></td>
+	  <td><input class='settings' name='theta' id='theta' min='0' max='90' value='25' type='range'></td>
 	</tr>
 	<tr>
 	  <td><label for='mom'>| <b>L</b> |:</label></td>
@@ -56,19 +41,36 @@
       </table>
     </form>
     <form>
-      <fieldset id='configs' data-role='controlgroup' data-type='horizontal'>
-        <input name='vectors' id='vectors' type='checkbox'>
+      <fieldset data-role='controlgroup' data-type='horizontal' style='display: inline; margin-right: 20px;'>
+        <input class='configs' name='vectors' id='vectors' type='checkbox'>
         <label for='vectors'><b style='color: green;'>L</b>, <b style='color: #aa2;'>ω</b></label>
-        <input name='line-of-nodes' id='line-of-nodes' type='checkbox'>
+        <input class='configs' name='line-of-nodes' id='line-of-nodes' type='checkbox'>
         <label for='line-of-nodes'>節線</label>
-        <input name='poinsot' id='poinsot' type='checkbox'>
-        <label for='poinsot'>Poinsotの作図</label>
-        <input name='binet' id='binet' type='checkbox'>
-        <label for='binet'><span style='color:#22f;'>E</span> 一定の面, <span style='color:#2fa;'>| L |</span> 一定の面</label>
-        <input name='shift' id='shift' type='checkbox'>
+        <input class='configs' name='shift' id='shift' type='checkbox'>
         <label for='shift'>原点をずらす</label>
       </fieldset>
+      <fieldset data-role='controlgroup' data-type='horizontal' style='display: inline;'>
+        <input class='configs' name='poinsot' id='poinsot' type='checkbox'>
+        <label for='poinsot'>Poinsotの作図</label>
+        <input class='configs' name='binet' id='binet' type='checkbox'>
+        <label for='binet'><span style='color:#22f;'>E</span> 一定の面, <span style='color:#2fa;'>| L |</span> 一定の面</label>
+      </fieldset>
     </form>
+    <div data-role="collapsible">
+      <h5>説明</h5>
+      <p>円柱の自由回転運動のシミュレーターです。運動方程式の厳密解を使って計算しています。姉妹編に<a href="http://club.pep.ne.jp/~tamubun/computer/hineri_web/hineri_web.html" rel="external">捻りシミュレーター</a>があります。また、<a href="http://bunysmc.exblog.jp/20459663/" rel="external">角運動量保存則と回転のエネルギー</a>から始まる一連の記事に、色々と詳しく書いています。</p>
+      <nl>
+	<li>シミュレーション画面上でマウスを左ボタン、中ボタン、右ボタンでドラッグすることにより視点を色々と動かすことが出来ます。</li>
+	<li>円柱上の赤線は、円柱の回転を分かり易くするように付けた目印で、円柱に貼りついています。</li>
+	<li>「時の流れ」で運動をスローで再生するか早送りで再生するかを変えられます。0にすれば、一時停止です。これは、物理的なパラメーターではありません。</li>
+	<li>「L,ω」を押すと、角運動量ベクトル<b>L</b>が緑色、角速度ベクトル<b>ω</b>が黄色で表示されます。自由回転なので、角運動量は保存されており動きません。</li>
+	<li>角速度や各種楕円体などが円柱の中に見辛いとき、「原点をずらす」を押すと、これらが円柱に重ならないようにして表示されるようになります。</li>
+	<li>「節線」は、オイラー角の文脈で使われる言葉です。もし、円柱が"嘘の回転"、つまり、円柱の対称軸を軸とする回転が無視され、対称軸だけが回転する(歳差運動)場合、円柱の赤線がどこに来るか、を表しています。<a href="http://bulletphysics.org/" rel="external">Bullet physics</a>や、<a href="http://www.blender.org/education-help/tutorials/game-engine/" rel="external">Blender game engine</a>などの物理エンジンでは(私が調べた時点では)、剛体の回転を、この嘘の回転でごまかしています。これでは、体操の捻りを伴った宙返りはシミュレート出来ません。</li>
+	<li>半径や高さを変えて、細長い円柱にしたり、平たい円柱にしたりして、回転運動がどうなるか見て下さい。節線を表示して、節線と赤線どちらがどちらを追い越すかなどが見所です。高さが半径の√3倍になるとき(対称軸回りの慣性モーメントと、対称軸に垂直な軸の慣性モーメントが等しくなる)が運動の変わり目で、この時、各種の楕円体が球になります。</li>
+	<li>「Poinsotの作図」を押したときに出る赤い楕円体が慣性楕円体で、その上部で接している灰色の平面が不変平面です。角速度ベクトルの指す延長上に慣性楕円体と不変平面の接点があります。この接点が慣性楕円体上に描く軌跡はポールホード、不変平面上に描く軌跡はハーポールホードと呼ばれています。</li>
+	<li>「E一定の面, |L|一定の面」を押した時は、角運動量空間内におけるエネルギー E 一定の楕円体面(Binetの楕円体)が紫色、角運動量の大きさ一定の球面が緑色で表示されます。これらの交わる線上に角運動量ベクトル<b>L</b>の先端が乗っています。</li>
+      </nl>
+    </div>
   </div>
 </div>
 </body>

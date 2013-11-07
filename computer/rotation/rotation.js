@@ -74,7 +74,7 @@ function init() {
 
   camera = new THREE.PerspectiveCamera(
     45, arena.innerWidth() / arena.innerHeight(), 1, 2000);
-  camera.position.set(0, 200, -700);
+  camera.position.set(0, 30, -750);
   camera.lookAt( scene.position );
   controls = new THREE.TrackballControls(camera, arena[0]);
   controls.rotateSpeed = 1.0;
@@ -105,8 +105,8 @@ function init() {
   cylinder.add(mark);
   cylinder.useQuaternion = true;
   cylinder.castShadow = true;
-  cylinder.position.y = 100;
-  scene.add( cylinder );
+  cylinder.position.y = 30;
+  scene.add(cylinder);
 
   var ground_material =
     new THREE.MeshLambertMaterial({ ambient: 0xbbbbbb, color: 0xaa7744 });
@@ -242,7 +242,7 @@ function animate() {
 
 $(function() {
   $('.settings').change(newSettings);
-  $('#configs input').change(newConfigs);
+  $('.configs').change(newConfigs);
   $('#speed').change(function() {
     time_offset = Date.now();
     timer_old = timer;
