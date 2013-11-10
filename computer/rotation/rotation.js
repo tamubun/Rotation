@@ -1,11 +1,14 @@
 'use strict';
+var debug = false;
+
 var camera, scene, renderer, controls;
 
 var radius, height, theta, mom, omega_phi, omega_psi;
 var timer, timer_old, time_offset;
-var I1, I2, I3, E, scale = 70, shift_x;
-var cylinder, poinsot, plane, contact, vect_l, vect_omega, binet, binet_s,
-    nodes_line;
+var I1, I2, I3, E, scale = 70, shift_x, cylinder_height = 170;
+var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
+    binet, binet_s, nodes_line;
+var body_coord;
 
 function newSettings() {
   radius = Number($('#radius').val());
@@ -13,8 +16,9 @@ function newSettings() {
   theta = Math.PI/180.0 * Number($('#theta').val());
   mom = Number($('#mom').val());
   cylinder.scale.set(radius * 50, height * 50, radius * 50);
-  cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
-
+  if ( !body_coord ) {
+    cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+  }
   nodes_line.scale.set(radius * 50, height * 50, radius * 50);
 
   I1 = I2 = radius * radius / 4.0 + height * height / 12.0;
@@ -28,7 +32,8 @@ function newSettings() {
     scale / Math.sqrt(I1),
     scale / Math.sqrt(I3),
     scale / Math.sqrt(I1));
-  plane.position.y = poinsot.position.y + scale * Math.sqrt(2 * E) / mom;
+  if ( !body_coord )
+    invariable.position.y = scale * Math.sqrt(2 * E) / mom;
 
   binet.scale.set(
     scale * Math.sqrt(2 * E * I1),
@@ -51,7 +56,7 @@ function newConfigs() {
     $('#line-of-nodes').prop('checked');
 
   poinsot.visible = poinsot.children[0].visible =
-  plane.visible = contact.visible =
+  invariable.visible = contact.visible =
     $('#poinsot').prop('checked');
   binet.visible = binet.children[0].visible =
   binet_s.visible =
@@ -62,10 +67,25 @@ function newConfigs() {
     $('#vectors').prop('checked');
 
   shift_x =
-  poinsot.position.x = plane.position.x =
-  binet.position.x = binet_s.position.x = 
+  poinsot.position.x = invariable.position.x =
+  binet.position.x = binet_s.position.x =
   vect_l.position.x = vect_omega.position.x =
     $('#shift').prop('checked') ? 200 : 0;
+
+  if ( body_coord !== $('#body-coord').prop('checked') )
+    changeCoordinateSystem();
+}
+
+function changeCoordinateSystem() {
+  body_coord = !body_coord;
+  if ( !body_coord ) {
+    ground.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    ground.position.set(0, -cylinder_height, 0);
+    vect_l.setDirection(new THREE.Vector3(0, 1, 0));
+    invariable.position.y = scale * Math.sqrt(2 * E) / mom;
+  } else {
+    cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0);
+  }
 }
 
 function init() {
@@ -75,7 +95,7 @@ function init() {
   camera = new THREE.PerspectiveCamera(
     45, arena.innerWidth() / arena.innerHeight(), 1, 2000);
   camera.position.set(0, 30, -750);
-  camera.lookAt( scene.position );
+  camera.lookAt(scene.position);
   controls = new THREE.TrackballControls(camera, arena[0]);
   controls.rotateSpeed = 1.0;
   controls.zoomSpeed = 1.2;
@@ -87,11 +107,6 @@ function init() {
   controls.enabled = true;
 
   scene.add(new THREE.AmbientLight(0x404040));
-  var light = new THREE.DirectionalLight(0xffffff);
-  light.position.set(-50, 200, -100);
-  light.castShadow = true;
-  light.shadowMapWidth = 2048;
-  light.shadowMapHeight = 2048;  scene.add(light);
 
   cylinder = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 1, 30, 1),
@@ -110,10 +125,25 @@ function init() {
   var ground_material =
     new THREE.MeshLambertMaterial({ ambient: 0xbbbbbb, color: 0xaa7744 });
   ground_material.side = THREE.DoubleSide;
-  var ground = new THREE.Mesh(
+  ground = new THREE.Mesh(
     new THREE.PlaneGeometry(600, 600), ground_material);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -180;
+  var light = new THREE.DirectionalLight(0xffffff);
+  light.position.set(-50, -100, -380);
+  light.castShadow = true;
+  light.shadowMapWidth = 2048;
+  light.shadowMapHeight = 2048;
+  light.target = cylinder;
+  ground.add(light); // 剛体系で、光源も地面と一緒に回るようにする
+  if ( debug ) {
+    var light_mark = new THREE.Mesh(
+      new THREE.SphereGeometry(3),
+      new THREE.MeshLambertMaterial(
+	{ ambient: 0xbbbbbb, color: 0xff2222 }));
+    light.add(light_mark);
+  }
+  ground.useQuaternion = true;
+  ground.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+  ground.position.y = -cylinder_height;
   ground.receiveShadow = true;
   scene.add(ground);
 
@@ -141,14 +171,14 @@ function init() {
   poinsot.quaternion = cylinder.quaternion;
   scene.add(poinsot);
 
-  var plane_material =
+  var invariable_material =
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x777777, transparent: true, opacity: 0.2 });
-  plane_material.side = THREE.DoubleSide;
-  plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(600, 600), plane_material);
-  plane.rotation.x = -Math.PI / 2;
-  scene.add(plane);
+  invariable_material.side = THREE.DoubleSide;
+  invariable = new THREE.Mesh(
+    new THREE.PlaneGeometry(600, 600), invariable_material);
+  invariable.quaternion = ground.quaternion;
+  scene.add(invariable);
 
   contact = new THREE.Mesh(
     new THREE.SphereGeometry(3),
@@ -202,34 +232,57 @@ function animate() {
     timer_old + (Date.now()-time_offset) * 0.000004 * Number($('#speed').val());
   var phi = timer * omega_phi,
       psi = timer * omega_psi;
-  var q1, q2;
+  var q, q_inv, q1, q2;
   q1 = new THREE.Quaternion();
   q1.setFromAxisAngle(new THREE.Vector3(0, 1, 0), psi);
   q2 = new THREE.Quaternion();
   q2.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
   q2.multiply(q1);
-  cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
-  cylinder.quaternion.multiply(q2);
+  q = new THREE.Quaternion();
+  q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
+  q.multiply(q2);
+  q_inv = q.clone().inverse();
+  var l =  new THREE.Vector3(0, mom, 0),
+      l_body = l.clone().applyQuaternion(q_inv),
+      omega = new THREE.Vector3(l_body.x / I1, l_body.y / I3, l_body.z / I1);
+  if ( !body_coord ) {
+    cylinder.quaternion.copy(q);
 
-  q2.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
-  nodes_line.rotation.set(0, phi, theta);
-  nodes_line.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
-  nodes_line.quaternion.multiply(q2);
+    q1.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+    nodes_line.rotation.set(0, phi, theta);
+    nodes_line.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
+    nodes_line.quaternion.multiply(q1);
 
-  var q = cylinder.quaternion.clone(),
-      omega = new THREE.Vector3(0, mom, 0);
-  q.inverse();
-  omega.applyQuaternion(q);
-  omega.x /= I1;
-  omega.y /= I3;
-  omega.z /= I1;
-  omega.applyQuaternion(cylinder.quaternion);
-  contact.position.set(
-    scale * omega.x / Math.sqrt(2 * E) + shift_x,
-    scale * omega.y / Math.sqrt(2 * E),
-    scale * omega.z / Math.sqrt(2 * E));
-  vect_omega.setLength(7 * omega.length());
-  vect_omega.setDirection(omega.normalize()); // omega changes
+    omega.applyQuaternion(q);
+    vect_omega.setLength(7 * omega.length());
+    vect_omega.setDirection(omega.clone().normalize());
+
+    contact.position.set(
+      scale * omega.x / Math.sqrt(2 * E) + shift_x,
+      scale * omega.y / Math.sqrt(2 * E),
+      scale * omega.z / Math.sqrt(2 * E));
+  } else {
+    ground.quaternion.copy(q_inv);
+    q1.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    ground.quaternion.multiply(q1);
+    ground.position.copy(
+      (new THREE.Vector3(0, -cylinder_height, 0)).applyQuaternion(q_inv));
+
+    nodes_line.rotation.set(0, -psi, 0);
+
+    vect_l.setDirection(l_body.clone().normalize());
+    vect_omega.setLength(7 * omega.length());
+    vect_omega.setDirection(omega.clone().normalize());
+
+    invariable.position.copy(
+      (new THREE.Vector3(0, scale * Math.sqrt(2 * E) / mom, 0))
+	.applyQuaternion(q_inv));
+    invariable.position.x += shift_x;
+    contact.position.set(
+      scale * omega.x / Math.sqrt(2 * E) + shift_x,
+      scale * omega.y / Math.sqrt(2 * E),
+      scale * omega.z / Math.sqrt(2 * E));
+  }
 
   controls.update();
   renderer.render(scene, camera);
@@ -242,6 +295,8 @@ $(function() {
     time_offset = Date.now();
     timer_old = timer;
   });
+
+  body_coord = $('#body-coord').prop('checked')
   init();
   animate();
 });
