@@ -105,7 +105,6 @@ function init() {
   cylinder.add(mark);
   cylinder.useQuaternion = true;
   cylinder.castShadow = true;
-  cylinder.position.y = 30;
   scene.add(cylinder);
 
   var ground_material =
@@ -114,7 +113,7 @@ function init() {
   var ground = new THREE.Mesh(
     new THREE.PlaneGeometry(600, 600), ground_material);
   ground.rotation.x = -Math.PI / 2;
-  ground.position.y = cylinder.position.y - 180;
+  ground.position.y = -180;
   ground.receiveShadow = true;
   scene.add(ground);
 
@@ -126,7 +125,6 @@ function init() {
   nodes_line = new THREE.Line(
     geo,
     new THREE.LineBasicMaterial({ color: 0x000000 }));
-  nodes_line.position.y = cylinder.position.y;
   nodes_line.useQuaternion = true;
   scene.add(nodes_line);
 
@@ -140,7 +138,6 @@ function init() {
   poinsot.add(new THREE.Mesh(
     new THREE.SphereGeometry(1, 8, 20),
     wireframe));
-  poinsot.position.y = cylinder.position.y;
   poinsot.quaternion = cylinder.quaternion;
   scene.add(poinsot);
 
@@ -166,7 +163,6 @@ function init() {
   binet.add(new THREE.Mesh(
     new THREE.SphereGeometry(1, 8, 40),
     wireframe));
-  binet.position.y = cylinder.position.y;
   binet.quaternion = cylinder.quaternion;
   scene.add(binet);
 
@@ -174,17 +170,16 @@ function init() {
     new THREE.SphereGeometry(1, 32, 40),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x22ffaa, transparent: true, opacity: 0.2 }));
-  binet_s.position.y = cylinder.position.y;
   scene.add(binet_s);
 
   vect_l = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(0, cylinder.position.y, 0),
+    new THREE.Vector3(0, 0, 0),
     1, 0x22aa55);
   scene.add(vect_l);
   vect_omega = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(0, cylinder.position.y, 0),
+    new THREE.Vector3(0, 0, 0),
     1, 0xaaaa22);
   scene.add(vect_omega);
 
@@ -231,7 +226,7 @@ function animate() {
   omega.applyQuaternion(cylinder.quaternion);
   contact.position.set(
     scale * omega.x / Math.sqrt(2 * E) + shift_x,
-    scale * omega.y / Math.sqrt(2 * E) + poinsot.position.y,
+    scale * omega.y / Math.sqrt(2 * E),
     scale * omega.z / Math.sqrt(2 * E));
   vect_omega.setLength(7 * omega.length());
   vect_omega.setDirection(omega.normalize()); // omega changes
