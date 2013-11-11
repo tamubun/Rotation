@@ -67,9 +67,7 @@ function newConfigs() {
     $('#vectors').prop('checked');
 
   shift_x =
-  poinsot.position.x = invariable.position.x =
-  binet.position.x = binet_s.position.x =
-  vect_l.position.x = vect_omega.position.x =
+  vect_l.position.x = invariable.position.x =
     $('#shift').prop('checked') ? 200 : 0;
 
   if ( body_coord !== $('#body-coord').prop('checked') )
@@ -118,7 +116,6 @@ function init() {
       { ambient: 0xbbbbbb, color: 0xff2222 }));
   mark.position.x = 0.5;
   cylinder.add(mark);
-  cylinder.useQuaternion = true;
   cylinder.castShadow = true;
   scene.add(cylinder);
 
@@ -141,7 +138,6 @@ function init() {
 	{ ambient: 0xbbbbbb, color: 0xff2222 }));
     light.add(light_mark);
   }
-  ground.useQuaternion = true;
   ground.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
   ground.position.y = -cylinder_height;
   ground.receiveShadow = true;
@@ -155,7 +151,6 @@ function init() {
   nodes_line = new THREE.Line(
     geo,
     new THREE.LineBasicMaterial({ color: 0x000000 }));
-  nodes_line.useQuaternion = true;
   scene.add(nodes_line);
 
   var wireframe = new THREE.MeshBasicMaterial(
@@ -168,7 +163,6 @@ function init() {
   poinsot.add(new THREE.Mesh(
     new THREE.SphereGeometry(1, 8, 20),
     wireframe));
-  poinsot.quaternion = cylinder.quaternion;
   scene.add(poinsot);
 
   var invariable_material =
@@ -177,7 +171,6 @@ function init() {
   invariable_material.side = THREE.DoubleSide;
   invariable = new THREE.Mesh(
     new THREE.PlaneGeometry(600, 600), invariable_material);
-  invariable.quaternion = ground.quaternion;
   scene.add(invariable);
 
   contact = new THREE.Mesh(
@@ -193,7 +186,6 @@ function init() {
   binet.add(new THREE.Mesh(
     new THREE.SphereGeometry(1, 8, 40),
     wireframe));
-  binet.quaternion = cylinder.quaternion;
   scene.add(binet);
 
   binet_s = new THREE.Mesh(
@@ -212,6 +204,14 @@ function init() {
     new THREE.Vector3(0, 0, 0),
     1, 0xaaaa22);
   scene.add(vect_omega);
+
+  /* 角度、位置を共有する */
+  poinsot.quaternion = binet.quaternion =
+    cylinder.quaternion;
+  invariable.quaternion =
+    ground.quaternion;
+  poinsot.position = binet.position = binet_s.position = vect_omega.position =
+    vect_l.position;
 
   newSettings();
   newConfigs();
