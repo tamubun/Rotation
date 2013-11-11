@@ -171,6 +171,7 @@ function init() {
   invariable_material.side = THREE.DoubleSide;
   invariable = new THREE.Mesh(
     new THREE.PlaneGeometry(600, 600), invariable_material);
+  invariable.renderDepth = 0;
   scene.add(invariable);
 
   contact = new THREE.Mesh(
