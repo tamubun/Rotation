@@ -3,7 +3,7 @@ var debug = false;
 
 var camera, scene, renderer, controls;
 
-var radius1, radius2, height, theta, mom, omega_phi, omega_psi;
+var radius1, radius2, height, theta, mom;
 var timer, timer_old, time_offset;
 var I1, I2, I3, E, scale = 70, shift_x, cylinder_height = 170;
 var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
@@ -21,29 +21,31 @@ function newSettings() {
     cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
   }
   var r = radius1 > radius2 ? radius1 : radius2;
+
   nodes_line.scale.set(r * 50, height * 50, 1);
 
   I1 = radius2 * radius2 / 4.0 + height * height / 12.0;
-  I2 = radius1 * radius1 / 4.0 + height * height / 12.0;
-  I3 = (radius1 * radius1 + radius2 * radius2) / 4.0;
-  omega_phi = mom / I1;
-  omega_psi = -(I3 - I1)/I3 * Math.cos(theta) * omega_phi;
-  var omega_3 = omega_phi * Math.cos(theta) + omega_psi,
-      A = omega_phi * Math.sin(theta);
-  E = 0.5 * ( I1 * A * A + I3 * omega_3 * omega_3 );
+  I2 = (radius1 * radius1 + radius2 * radius2) / 4.0;
+  I3 = radius1 * radius1 / 4.0 + height * height / 12.0;
+
+  var q_inv = cylinder.quaternion.clone().inverse(),
+      l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
+      om1 = l_body.x / I1, om2 = l_body.y / I2, om3 = l_body.z / I3;
+
+  E = 0.5 * ( I1*om1*om1 + I2*om2*om2 + I3*om3*om3 );
   poinsot.scale.set(
     scale / Math.sqrt(I1),
-    scale / Math.sqrt(I3),
-    scale / Math.sqrt(I2));
+    scale / Math.sqrt(I2),
+    scale / Math.sqrt(I3));
   if ( !body_coord )
     invariable.position.y = scale * Math.sqrt(2 * E) / mom;
 
   binet.scale.set(
     scale * Math.sqrt(2 * E * I1),
-    scale * Math.sqrt(2 * E * I3),
-    scale * Math.sqrt(2 * E * I2));
+    scale * Math.sqrt(2 * E * I2),
+    scale * Math.sqrt(2 * E * I3));
   binet_s.scale.set(mom * scale, mom * scale, mom * scale);
-  if ( I1 > I3 && Math.sqrt(2 * E * I1) > mom ) {
+  if ( I1 > I3 && Math.sqrt(2 * E * I1) > mom ) { // TODO:
     binet.renderDepth = binet.children[0].renderDepth = 0;
     binet_s.renderDepth = 1;
   } else {
@@ -232,32 +234,28 @@ function init() {
 function animate() {
   requestAnimationFrame(animate);
 
-  timer =
-    timer_old + (Date.now()-time_offset) * 0.000004 * Number($('#speed').val());
-  var phi = timer * omega_phi,
-      psi = timer * omega_psi;
-  var q, q_inv, q1, q2;
-  q1 = new THREE.Quaternion();
-  q1.setFromAxisAngle(new THREE.Vector3(0, 1, 0), psi);
-  q2 = new THREE.Quaternion();
-  q2.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
-  q2.multiply(q1);
-  q = new THREE.Quaternion();
-  q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
-  q.multiply(q2);
-  q_inv = q.clone().inverse();
-  var l =  new THREE.Vector3(0, mom, 0),
-      l_body = l.clone().applyQuaternion(q_inv),
-      omega = new THREE.Vector3(l_body.x / I1, l_body.y / I3, l_body.z / I1);
-  if ( !body_coord ) {
-    cylinder.quaternion.copy(q);
+  var dt = (Date.now()-time_offset) * 0.00000004 * Number($('#speed').val());
+  timer = timer_old + dt;
 
+  var q_inv = cylinder.quaternion.clone().inverse(),
+      l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
+      omega_body =
+        new THREE.Vector3(l_body.x / I1, l_body.y / I2, l_body.z / I3),
+      omega = omega_body.applyQuaternion(cylinder.quaternion),
+      new_q  =
+        (new THREE.Quaternion()).
+        setFromAxisAngle(omega.clone().normalize(), omega.length() * dt);
+
+  if ( !body_coord ) {
+    cylinder.quaternion.multiplyQuaternions(new_q, cylinder.quaternion);
+
+    /*
     q1.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
     nodes_line.rotation.set(0, phi, theta);
     nodes_line.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
     nodes_line.quaternion.multiply(q1);
+    */
 
-    omega.applyQuaternion(q);
     vect_omega.setLength(7 * omega.length());
     vect_omega.setDirection(omega.clone().normalize());
 
@@ -266,6 +264,7 @@ function animate() {
       scale * omega.y / Math.sqrt(2 * E),
       scale * omega.z / Math.sqrt(2 * E));
   } else {
+/*
     ground.quaternion.copy(q_inv);
     q1.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
     ground.quaternion.multiply(q1);
@@ -286,6 +285,7 @@ function animate() {
       scale * omega.x / Math.sqrt(2 * E) + shift_x,
       scale * omega.y / Math.sqrt(2 * E),
       scale * omega.z / Math.sqrt(2 * E));
+*/
   }
 
   controls.update();
