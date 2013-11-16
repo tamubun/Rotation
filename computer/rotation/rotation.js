@@ -3,7 +3,7 @@ var debug = false;
 
 var camera, scene, renderer, controls;
 
-var radius, height, theta, mom, omega_phi, omega_psi;
+var radius1, radius2, height, theta, mom, omega_phi, omega_psi;
 var timer, timer_old, time_offset;
 var I1, I2, I3, E, scale = 70, shift_x, cylinder_height = 170;
 var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
@@ -11,18 +11,21 @@ var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
 var body_coord;
 
 function newSettings() {
-  radius = Number($('#radius').val());
+  radius1 = Number($('#radius1').val());
+  radius2 = Number($('#radius2').val());
   height = Number($('#height').val());
   theta = Math.PI/180.0 * Number($('#theta').val());
   mom = Number($('#mom').val());
-  cylinder.scale.set(radius * 50, height * 50, radius * 50);
+  cylinder.scale.set(radius1 * 50, height * 50, radius2 * 50);
   if ( !body_coord ) {
     cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
   }
-  nodes_line.scale.set(radius * 50, height * 50, radius * 50);
+  var r = radius1 > radius2 ? radius1 : radius2;
+  nodes_line.scale.set(r * 50, height * 50, 1);
 
-  I1 = I2 = radius * radius / 4.0 + height * height / 12.0;
-  I3 = radius * radius / 2.0;
+  I1 = radius2 * radius2 / 4.0 + height * height / 12.0;
+  I2 = radius1 * radius1 / 4.0 + height * height / 12.0;
+  I3 = (radius1 * radius1 + radius2 * radius2) / 4.0;
   omega_phi = mom / I1;
   omega_psi = -(I3 - I1)/I3 * Math.cos(theta) * omega_phi;
   var omega_3 = omega_phi * Math.cos(theta) + omega_psi,
@@ -31,14 +34,14 @@ function newSettings() {
   poinsot.scale.set(
     scale / Math.sqrt(I1),
     scale / Math.sqrt(I3),
-    scale / Math.sqrt(I1));
+    scale / Math.sqrt(I2));
   if ( !body_coord )
     invariable.position.y = scale * Math.sqrt(2 * E) / mom;
 
   binet.scale.set(
     scale * Math.sqrt(2 * E * I1),
     scale * Math.sqrt(2 * E * I3),
-    scale * Math.sqrt(2 * E * I1));
+    scale * Math.sqrt(2 * E * I2));
   binet_s.scale.set(mom * scale, mom * scale, mom * scale);
   if ( I1 > I3 && Math.sqrt(2 * E * I1) > mom ) {
     binet.renderDepth = binet.children[0].renderDepth = 0;
