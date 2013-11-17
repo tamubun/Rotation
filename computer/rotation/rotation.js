@@ -228,14 +228,21 @@ function init() {
   $('#arena').append(renderer.domElement);
 
   timer_old = 0;
+/*
   time_offset = Date.now();
+*/
 }
 
 function animate() {
   requestAnimationFrame(animate);
 
-  var dt = (Date.now()-time_offset) * 0.00000004 * Number($('#speed').val());
-  timer = timer_old + dt;
+/*
+  timer =
+   timer_old + (Date.now()-time_offset) * 0.000004 * Number($('#speed').val());
+*/
+  var now = Date.now(),
+      dt = (now - timer_old) * 0.000008 * Number($('#speed').val());
+  timer_old = now;
 
   var q_inv = cylinder.quaternion.clone().inverse(),
       l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
@@ -295,11 +302,12 @@ function animate() {
 $(function() {
   $('.settings').change(newSettings);
   $('.configs').change(newConfigs);
+/*
   $('#speed').change(function() {
     time_offset = Date.now();
     timer_old = timer;
   });
-
+*/
   body_coord = $('#body-coord').prop('checked')
   init();
   animate();
