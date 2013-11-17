@@ -5,7 +5,7 @@ var camera, scene, renderer, controls;
 
 var radius1, radius2, height, theta, mom;
 var timer, timer_old, time_offset;
-var I1, I2, I3, E, scale = 70, shift_x, cylinder_height = 170;
+var I1, I2, I3, E, the_q, scale = 70, shift_x, cylinder_height = 170;
 var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
     binet, binet_s, nodes_line;
 var body_coord;
@@ -16,9 +16,13 @@ function newSettings() {
   height = Number($('#height').val());
   theta = Math.PI/180.0 * Number($('#theta').val());
   mom = Number($('#mom').val());
+  the_q =
+    (new THREE.Quaternion())
+    .setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+
   cylinder.scale.set(radius1 * 50, height * 50, radius2 * 50);
   if ( !body_coord ) {
-    cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+    cylinder.quaternion.copy(the_q);
   }
   var r = radius1 > radius2 ? radius1 : radius2;
 
@@ -28,7 +32,7 @@ function newSettings() {
   I2 = (radius1 * radius1 + radius2 * radius2) / 4.0;
   I3 = radius1 * radius1 / 4.0 + height * height / 12.0;
 
-  var q_inv = cylinder.quaternion.clone().inverse(),
+  var q_inv = the_q.clone().inverse(),
       l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
       om1 = l_body.x / I1, om2 = l_body.y / I2, om3 = l_body.z / I3;
 
@@ -244,17 +248,18 @@ function animate() {
       dt = (now - timer_old) * 0.000008 * Number($('#speed').val());
   timer_old = now;
 
-  var q_inv = cylinder.quaternion.clone().inverse(),
+  var q_inv = the_q.clone().inverse(),
       l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
       omega_body =
         new THREE.Vector3(l_body.x / I1, l_body.y / I2, l_body.z / I3),
-      omega = omega_body.applyQuaternion(cylinder.quaternion),
-      new_q  =
-        (new THREE.Quaternion()).
-        setFromAxisAngle(omega.clone().normalize(), omega.length() * dt);
+      omega = omega_body.clone().applyQuaternion(the_q),
+      E_cur = 0.5 *
+      (I1*omega_body.x*omega_body.x +
+       I2*omega_body.y*omega_body.y +
+       I3*omega_body.z*omega_body.z);
 
   if ( !body_coord ) {
-    cylinder.quaternion.multiplyQuaternions(new_q, cylinder.quaternion);
+    cylinder.quaternion.copy(the_q);
 
     /*
     q1.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
@@ -267,33 +272,36 @@ function animate() {
     vect_omega.setDirection(omega.clone().normalize());
 
     contact.position.set(
-      scale * omega.x / Math.sqrt(2 * E) + shift_x,
-      scale * omega.y / Math.sqrt(2 * E),
-      scale * omega.z / Math.sqrt(2 * E));
+      scale * omega.x / Math.sqrt(2 * E_cur) + shift_x,
+      scale * omega.y / Math.sqrt(2 * E_cur),
+      scale * omega.z / Math.sqrt(2 * E_cur));
   } else {
-/*
-    ground.quaternion.copy(q_inv);
-    q1.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
-    ground.quaternion.multiply(q1);
+    ground.quaternion.multiplyQuaternions(
+      q_inv,
+      (new THREE.Quaternion()).
+	setFromAxisAngle(new THREE.Vector3(1,0,0), Math.PI/2.0));
     ground.position.copy(
       (new THREE.Vector3(0, -cylinder_height, 0)).applyQuaternion(q_inv));
 
-    nodes_line.rotation.set(0, -psi, 0);
+//    nodes_line.rotation.set(0, -psi, 0);
 
     vect_l.setDirection(l_body.clone().normalize());
-    vect_omega.setLength(7 * omega.length());
-    vect_omega.setDirection(omega.clone().normalize());
-
+    vect_omega.setLength(7 * omega_body.length());
+    vect_omega.setDirection(omega_body.clone().normalize());
     invariable.position.copy(
       (new THREE.Vector3(0, scale * Math.sqrt(2 * E) / mom, 0))
 	.applyQuaternion(q_inv));
     invariable.position.x += shift_x;
     contact.position.set(
-      scale * omega.x / Math.sqrt(2 * E) + shift_x,
-      scale * omega.y / Math.sqrt(2 * E),
-      scale * omega.z / Math.sqrt(2 * E));
-*/
+      scale * omega_body.x / Math.sqrt(2 * E_cur) + shift_x,
+      scale * omega_body.y / Math.sqrt(2 * E_cur),
+      scale * omega_body.z / Math.sqrt(2 * E_cur));
   }
+
+  the_q =
+    (new THREE.Quaternion())
+    .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
+    .multiply(the_q);
 
   controls.update();
   renderer.render(scene, camera);
