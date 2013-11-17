@@ -59,6 +59,12 @@
         <input class='configs' name='binet' id='binet' type='checkbox'>
         <label for='binet'><span style='color:#22f;'>E</span> 一定の面, <span style='color:#2fa;'>| L |</span> 一定の面</label>
       </fieldset>
+      <label for='method' class='select'>近似法:</label>
+      <select name='method' class='settings' id='method' data-inline='true'>
+	<option value='1st'>1st order</option>
+	<option value='2nd' selected='selected'>2nd order</option>
+	<option value='f3rd'>false 3rd order</option>
+      </select>
     </form>
     <div data-role="collapsible">
       <h5>説明</h5>

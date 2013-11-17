@@ -252,11 +252,17 @@ function animate() {
       l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
       omega_body =
         new THREE.Vector3(l_body.x / I1, l_body.y / I2, l_body.z / I3),
+      omega_dot_body = new THREE.Vector3(),
       omega = omega_body.clone().applyQuaternion(the_q),
       E_cur = 0.5 *
       (I1*omega_body.x*omega_body.x +
        I2*omega_body.y*omega_body.y +
        I3*omega_body.z*omega_body.z);
+
+  omega_dot_body.crossVectors(l_body, omega_body);
+  omega_dot_body.x /= I1;
+  omega_dot_body.y /= I2;
+  omega_dot_body.z /= I3;
 
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
@@ -298,10 +304,22 @@ function animate() {
       scale * omega_body.z / Math.sqrt(2 * E_cur));
   }
 
-  the_q =
-    (new THREE.Quaternion())
-    .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
-    .multiply(the_q);
+  switch ( $('#method').val() ) {
+  case '1th':
+    the_q =
+      (new THREE.Quaternion())
+      .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
+      .multiply(the_q);
+    break;
+  case '2nd':
+    omega_body.add(omega_dot_body.multiplyScalar(dt / 2.0));
+    omega = omega_body.applyQuaternion(the_q),
+    the_q =
+      (new THREE.Quaternion())
+      .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
+      .multiply(the_q);
+    break;
+  }
 
   controls.update();
   renderer.render(scene, camera);
