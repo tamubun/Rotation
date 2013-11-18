@@ -26,7 +26,7 @@ function newSettings() {
   }
   var r = radius1 > radius2 ? radius1 : radius2;
 
-  nodes_line.scale.set(r * 50, height * 50, 1);
+//  nodes_line.scale.set(r * 50, height * 50, 1);
 
   I1 = radius2 * radius2 / 4.0 + height * height / 12.0;
   I2 = (radius1 * radius1 + radius2 * radius2) / 4.0;
@@ -61,8 +61,12 @@ function newSettings() {
 }
 
 function newConfigs() {
+/*
   nodes_line.visible =
     $('#line-of-nodes').prop('checked');
+*/
+  ground.visible =
+    !$('#noground').prop('checked');
 
   poinsot.visible = poinsot.children[0].visible =
   invariable.visible = contact.visible =
@@ -152,6 +156,7 @@ function init() {
   ground.receiveShadow = true;
   scene.add(ground);
 
+/*
   var geo = new THREE.Geometry();
   geo.vertices.push(new THREE.Vector3(0, 0.5025, 0));
   geo.vertices.push(new THREE.Vector3(1.02, 0.5025, 0));
@@ -161,6 +166,7 @@ function init() {
     geo,
     new THREE.LineBasicMaterial({ color: 0x000000 }));
   scene.add(nodes_line);
+*/
 
   var wireframe = new THREE.MeshBasicMaterial(
     { color: 0xffffff, wireframe: true, transparent: true, opacity: 0.3 });
