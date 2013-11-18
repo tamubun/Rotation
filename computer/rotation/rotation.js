@@ -253,6 +253,8 @@ function animate() {
       omega_body =
         new THREE.Vector3(l_body.x / I1, l_body.y / I2, l_body.z / I3),
       omega_dot_body = new THREE.Vector3(),
+      omega_dot_dot_body = new THREE.Vector3(),
+      tmp = new THREE.Vector3(),
       omega = omega_body.clone().applyQuaternion(the_q),
       E_cur = 0.5 *
       (I1*omega_body.x*omega_body.x +
@@ -263,6 +265,17 @@ function animate() {
   omega_dot_body.x /= I1;
   omega_dot_body.y /= I2;
   omega_dot_body.z /= I3;
+/*
+  // 多分omega_dot_dotの計算間違ってる。空間座標での式を剛体座標で使ってるので
+  tmp.crossVectors(omega_body, l_body);
+  tmp.crossVectors(omega_body, tmp);
+  omega_dot_dot_body.crossVectors(l_body, omega_dot_body).add(tmp);
+  omega_dot_dot_body.x /= I1;
+  omega_dot_dot_body.y /= I2;
+  omega_dot_dot_body.z /= I3;
+  tmp.crossVectors(omega_body, omega_dot_body);
+  omega_dot_dot_body.add(tmp);
+*/
 
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
@@ -306,20 +319,37 @@ function animate() {
 
   switch ( $('#method').val() ) {
   case '1th':
-    the_q =
-      (new THREE.Quaternion())
-      .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
-      .multiply(the_q);
     break;
   case '2nd':
     omega_body.add(omega_dot_body.multiplyScalar(dt / 2.0));
-    omega = omega_body.applyQuaternion(the_q),
-    the_q =
-      (new THREE.Quaternion())
-      .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
-      .multiply(the_q);
+    break;
+  case 'f3rd':
+    omega_body
+      .add(omega_dot_body.multiplyScalar(dt / 2.0))
+      .add(omega_dot_dot_body.multiplyScalar(dt*dt / 6.0));
+    break;
+  case 'a2nd':
+    tmp.crossVectors(omega_dot_body, omega_body);
+    omega_body
+      .add(omega_dot_body.multiplyScalar(dt / 2.0))
+      .add(tmp.multiplyScalar(dt*dt / 12.0));
+    break;
+  case 't3rd':
+    tmp.copy(omega_dot_body)
+      .add(omega_dot_dot_body.clone().multiplyScalar(dt / 3.0))
+      .cross(omega_body)
+      .multiplyScalar(dt * dt / 12.0);
+    omega_body
+      .add(omega_dot_body.multiplyScalar(dt / 2.0))
+      .add(omega_dot_dot_body.multiplyScalar(dt*dt / 6.0))
+      .add(tmp);
     break;
   }
+  omega = omega_body.applyQuaternion(the_q);
+  the_q =
+    (new THREE.Quaternion())
+    .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
+    .multiply(the_q);
 
   controls.update();
   renderer.render(scene, camera);
