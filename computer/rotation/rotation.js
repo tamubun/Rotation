@@ -237,7 +237,7 @@ function init() {
   renderer.shadowMapEnabled = true;
   $('#arena').append(renderer.domElement);
 
-  timer_old = 0;
+  timer_old = Date.now();
 /*
   time_offset = Date.now();
 */
