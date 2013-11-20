@@ -6,6 +6,10 @@ var camera, scene, renderer, controls;
 var radius, height, theta, mom, omega_phi, omega_psi;
 var timer, timer_old, time_offset;
 var I1, I2, I3, E, scale = 70, shift_x, cylinder_height = 170;
+var e1 = new THREE.Vector3(1,0,0),
+    e2 = new THREE.Vector3(0,1,0),
+    e3 = new THREE.Vector3(0,0,1),
+    zero = new THREE.Vector3(0,0,0);
 var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
     binet, binet_s, nodes_line;
 var body_coord;
@@ -17,7 +21,7 @@ function newSettings() {
   mom = Number($('#mom').val());
   cylinder.scale.set(radius * 50, height * 50, radius * 50);
   if ( !body_coord ) {
-    cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+    cylinder.quaternion.setFromAxisAngle(e1.clone().negate(), theta);
   }
   nodes_line.scale.set(radius * 50, height * 50, radius * 50);
 
@@ -77,12 +81,12 @@ function newConfigs() {
 function changeCoordinateSystem() {
   body_coord = !body_coord;
   if ( !body_coord ) {
-    ground.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
     ground.position.set(0, -cylinder_height, 0);
-    vect_l.setDirection(new THREE.Vector3(0, 1, 0));
+    vect_l.setDirection(e2);
     invariable.position.y = scale * Math.sqrt(2 * E) / mom;
   } else {
-    cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0);
+    cylinder.quaternion.setFromAxisAngle(e3, 0);
   }
 }
 
@@ -138,7 +142,7 @@ function init() {
 	{ ambient: 0xbbbbbb, color: 0xff2222 }));
     light.add(light_mark);
   }
-  ground.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+  ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
   ground.position.y = -cylinder_height;
   ground.receiveShadow = true;
   scene.add(ground);
@@ -195,15 +199,9 @@ function init() {
       { ambient: 0xbbbbbb, color: 0x22ffaa, transparent: true, opacity: 0.2 }));
   scene.add(binet_s);
 
-  vect_l = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(0, 0, 0),
-    1, 0x22aa55);
+  vect_l = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0x22aa55);
   scene.add(vect_l);
-  vect_omega = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(0, 0, 0),
-    1, 0xaaaa22);
+  vect_omega = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0xaaaa22);
   scene.add(vect_omega);
 
   /* 角度、位置を共有する */
@@ -235,12 +233,12 @@ function animate() {
       psi = timer * omega_psi;
   var q, q_inv, q1, q2;
   q1 = new THREE.Quaternion();
-  q1.setFromAxisAngle(new THREE.Vector3(0, 1, 0), psi);
+  q1.setFromAxisAngle(e2, psi);
   q2 = new THREE.Quaternion();
-  q2.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+  q2.setFromAxisAngle(e1.clone().negate(), theta);
   q2.multiply(q1);
   q = new THREE.Quaternion();
-  q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
+  q.setFromAxisAngle(e2, phi);
   q.multiply(q2);
   q_inv = q.clone().inverse();
   var l =  new THREE.Vector3(0, mom, 0),
@@ -249,9 +247,9 @@ function animate() {
   if ( !body_coord ) {
     cylinder.quaternion.copy(q);
 
-    q1.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+    q1.setFromAxisAngle(e1.clone().negate(), theta);
     nodes_line.rotation.set(0, phi, theta);
-    nodes_line.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
+    nodes_line.quaternion.setFromAxisAngle(e2, phi);
     nodes_line.quaternion.multiply(q1);
 
     omega.applyQuaternion(q);
@@ -264,7 +262,7 @@ function animate() {
       scale * omega.z / Math.sqrt(2 * E));
   } else {
     ground.quaternion.copy(q_inv);
-    q1.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    q1.setFromAxisAngle(e1, Math.PI/2);
     ground.quaternion.multiply(q1);
     ground.position.copy(
       (new THREE.Vector3(0, -cylinder_height, 0)).applyQuaternion(q_inv));
