@@ -10,7 +10,7 @@ var e1 = new THREE.Vector3(1,0,0),
     e2 = new THREE.Vector3(0,1,0),
     e3 = new THREE.Vector3(0,0,1),
     zero = new THREE.Vector3(0,0,0);
-var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
+var cylinder, ground, poinsot, invariable, contact, vect_L, vect_omega,
     binet, binet_s, nodes_line;
 var body_coord;
 
@@ -36,8 +36,8 @@ function newSettings() {
   I3 = radius1 * radius1 / 4.0 + height * height / 12.0;
 
   var q_inv = the_q.clone().inverse(),
-      l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
-      om1 = l_body.x / I1, om2 = l_body.y / I2, om3 = l_body.z / I3;
+      L_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
+      om1 = L_body.x / I1, om2 = L_body.y / I2, om3 = L_body.z / I3;
 
   E = 0.5 * ( I1*om1*om1 + I2*om2*om2 + I3*om3*om3 );
   poinsot.scale.set(
@@ -60,7 +60,7 @@ function newSettings() {
     binet_s.renderDepth = 0;
   }
 
-  vect_l.scale.set(mom * scale, mom * scale, mom * scale);
+  vect_L.scale.set(mom * scale, mom * scale, mom * scale);
 }
 
 function newConfigs() {
@@ -78,12 +78,12 @@ function newConfigs() {
   binet_s.visible =
     $('#binet').prop('checked');
 
-  vect_l.line.visible = vect_l.cone.visible =
+  vect_L.line.visible = vect_L.cone.visible =
   vect_omega.line.visible = vect_omega.cone.visible =
     $('#vectors').prop('checked');
 
   shift_x =
-  vect_l.position.x = invariable.position.x =
+  vect_L.position.x = invariable.position.x =
     $('#shift').prop('checked') ? 200 : 0;
 
   if ( body_coord !== $('#body-coord').prop('checked') )
@@ -95,7 +95,7 @@ function changeCoordinateSystem() {
   if ( !body_coord ) {
     ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
     ground.position.set(0, -cylinder_height, 0);
-    vect_l.setDirection(e2);
+    vect_L.setDirection(e2);
     invariable.position.y = scale * Math.sqrt(2 * E) / mom;
   } else {
     cylinder.quaternion.setFromAxisAngle(e3, 0);
@@ -213,8 +213,8 @@ function init() {
       { ambient: 0xbbbbbb, color: 0x22ffaa, transparent: true, opacity: 0.2 }));
   scene.add(binet_s);
 
-  vect_l = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0x22aa55);
-  scene.add(vect_l);
+  vect_L = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0x22aa55);
+  scene.add(vect_L);
   vect_omega = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0xaaaa22);
   scene.add(vect_omega);
 
@@ -224,7 +224,7 @@ function init() {
   invariable.quaternion =
     ground.quaternion;
   poinsot.position = binet.position = binet_s.position = vect_omega.position =
-    vect_l.position;
+    vect_L.position;
 
   newSettings();
   newConfigs();
@@ -252,9 +252,9 @@ function animate() {
   timer_old = now;
 
   var q_inv = the_q.clone().inverse(),
-      l_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
+      L_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
       omega_body =
-        new THREE.Vector3(l_body.x / I1, l_body.y / I2, l_body.z / I3),
+        new THREE.Vector3(L_body.x / I1, L_body.y / I2, L_body.z / I3),
       omega_dot_body = new THREE.Vector3(),
       omega_dot_dot_body = new THREE.Vector3(),
       tmp = new THREE.Vector3(),
@@ -264,15 +264,15 @@ function animate() {
        I2*omega_body.y*omega_body.y +
        I3*omega_body.z*omega_body.z);
 
-  omega_dot_body.crossVectors(l_body, omega_body);
+  omega_dot_body.crossVectors(L_body, omega_body);
   omega_dot_body.x /= I1;
   omega_dot_body.y /= I2;
   omega_dot_body.z /= I3;
 /*
   // 多分omega_dot_dotの計算間違ってる。空間座標での式を剛体座標で使ってるので
-  tmp.crossVectors(omega_body, l_body);
+  tmp.crossVectors(omega_body, L_body);
   tmp.crossVectors(omega_body, tmp);
-  omega_dot_dot_body.crossVectors(l_body, omega_dot_body).add(tmp);
+  omega_dot_dot_body.crossVectors(L_body, omega_dot_body).add(tmp);
   omega_dot_dot_body.x /= I1;
   omega_dot_dot_body.y /= I2;
   omega_dot_dot_body.z /= I3;
@@ -306,7 +306,7 @@ function animate() {
 
 //    nodes_line.rotation.set(0, -psi, 0);
 
-    vect_l.setDirection(l_body.clone().normalize());
+    vect_L.setDirection(L_body.clone().normalize());
     vect_omega.setLength(7 * omega_body.length());
     vect_omega.setDirection(omega_body.clone().normalize());
     invariable.position.copy(
