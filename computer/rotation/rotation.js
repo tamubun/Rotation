@@ -6,6 +6,10 @@ var camera, scene, renderer, controls;
 var radius1, radius2, height, theta, mom;
 var timer, timer_old, time_offset;
 var I1, I2, I3, E, the_q, scale = 70, shift_x, cylinder_height = 170;
+var e1 = new THREE.Vector3(1,0,0),
+    e2 = new THREE.Vector3(0,1,0),
+    e3 = new THREE.Vector3(0,0,1),
+    zero = new THREE.Vector3(0,0,0);
 var cylinder, ground, poinsot, invariable, contact, vect_l, vect_omega,
     binet, binet_s, nodes_line;
 var body_coord;
@@ -90,12 +94,12 @@ function newConfigs() {
 function changeCoordinateSystem() {
   body_coord = !body_coord;
   if ( !body_coord ) {
-    ground.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
     ground.position.set(0, -cylinder_height, 0);
-    vect_l.setDirection(new THREE.Vector3(0, 1, 0));
+    vect_l.setDirection(e2);
     invariable.position.y = scale * Math.sqrt(2 * E) / mom;
   } else {
-    cylinder.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0);
+    cylinder.quaternion.setFromAxisAngle(e3, 0);
   }
 }
 
@@ -151,7 +155,7 @@ function init() {
 	{ ambient: 0xbbbbbb, color: 0xff2222 }));
     light.add(light_mark);
   }
-  ground.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
+  ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
   ground.position.y = -cylinder_height;
   ground.receiveShadow = true;
   scene.add(ground);
@@ -210,15 +214,9 @@ function init() {
       { ambient: 0xbbbbbb, color: 0x22ffaa, transparent: true, opacity: 0.2 }));
   scene.add(binet_s);
 
-  vect_l = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(0, 0, 0),
-    1, 0x22aa55);
+  vect_l = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0x22aa55);
   scene.add(vect_l);
-  vect_omega = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(0, 0, 0),
-    1, 0xaaaa22);
+  vect_omega = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0xaaaa22);
   scene.add(vect_omega);
 
   /* 角度、位置を共有する */
