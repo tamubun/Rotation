@@ -21,8 +21,7 @@ function newSettings() {
   theta = Math.PI/180.0 * Number($('#theta').val());
   mom = Number($('#mom').val());
   the_q =
-    (new THREE.Quaternion())
-    .setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+    (new THREE.Quaternion()).setFromAxisAngle(e1.clone().negate(), theta);
 
   cylinder.scale.set(radius1 * 50, height * 50, radius2 * 50);
   if ( !body_coord ) {
@@ -152,7 +151,7 @@ function init() {
     var light_mark = new THREE.Mesh(
       new THREE.SphereGeometry(3),
       new THREE.MeshLambertMaterial(
-	{ ambient: 0xbbbbbb, color: 0xff2222 }));
+        { ambient: 0xbbbbbb, color: 0xff2222 }));
     light.add(light_mark);
   }
   ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
@@ -285,9 +284,9 @@ function animate() {
     cylinder.quaternion.copy(the_q);
 
     /*
-    q1.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), theta);
+    q1.setFromAxisAngle(e1.clone().negate(), theta);
     nodes_line.rotation.set(0, phi, theta);
-    nodes_line.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), phi);
+    nodes_line.quaternion.setFromAxisAngle(e2, phi);
     nodes_line.quaternion.multiply(q1);
     */
 
@@ -301,8 +300,7 @@ function animate() {
   } else {
     ground.quaternion.multiplyQuaternions(
       q_inv,
-      (new THREE.Quaternion()).
-	setFromAxisAngle(new THREE.Vector3(1,0,0), Math.PI/2.0));
+      (new THREE.Quaternion()).setFromAxisAngle(e1, Math.PI/2.0));
     ground.position.copy(
       (new THREE.Vector3(0, -cylinder_height, 0)).applyQuaternion(q_inv));
 
@@ -313,7 +311,7 @@ function animate() {
     vect_omega.setDirection(omega_body.clone().normalize());
     invariable.position.copy(
       (new THREE.Vector3(0, scale * Math.sqrt(2 * E) / mom, 0))
-	.applyQuaternion(q_inv));
+        .applyQuaternion(q_inv));
     invariable.position.x += shift_x;
     contact.position.set(
       scale * omega_body.x / Math.sqrt(2 * E_cur) + shift_x,
