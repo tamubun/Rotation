@@ -35,7 +35,7 @@ function newSettings() {
   I1 = radius2 * radius2 / 4.0 + height * height / 12.0;
   I2 = (radius1 * radius1 + radius2 * radius2) / 4.0;
   I3 = radius1 * radius1 / 4.0 + height * height / 12.0;
-  I_body = new THREE.Matrix3(I1,0,0, 0,I2,0, 0,0,I3);
+  I_body = new THREE.Matrix4(I1,0,0,0,  0,I2,0,0,  0,0,I3,0,  0,0,0,1);
   I_body_v = new THREE.Vector3(I1,I2,I3);
 
   var q_inv = the_q.clone().inverse(),
@@ -243,6 +243,7 @@ function init() {
 */
 }
 
+var count = 0;
 function animate() {
   requestAnimationFrame(animate);
 
@@ -262,7 +263,11 @@ function animate() {
       tmp = new THREE.Vector3(),
       omega = omega_body.clone().applyQuaternion(the_q),
       E_cur = 0.5 *
-        omega_body.clone().multiply(omega_body).dot(I_body_v);
+        omega_body.clone().multiply(omega_body).dot(I_body_v),
+      rot = new THREE.Matrix4().makeRotationFromQuaternion(the_q),
+      I_space = rot.clone().multiply(I_body).multiply(rot.clone().transpose());
+
+  var Ls = omega.clone().applyMatrix4(I_space);
 
   omega_dot_body.crossVectors(L_body, omega_body).divide(I_body_v);
 /*
@@ -289,7 +294,6 @@ function animate() {
 
     vect_omega.setLength(7 * omega.length());
     vect_omega.setDirection(omega.clone().normalize());
-
     contact.position.set(
       scale * omega.x / Math.sqrt(2 * E_cur) + shift_x,
       scale * omega.y / Math.sqrt(2 * E_cur),
@@ -316,10 +320,16 @@ function animate() {
       scale * omega_body.z / Math.sqrt(2 * E_cur));
   }
 
+  var tmp = omega.clone().cross(new THREE.Vector3(0,mom,0)).negate();
+  var I_space_inv = new THREE.Matrix3().getInverse(I_space);
+  var omega_dot_space = tmp.applyMatrix3(I_space_inv);
+  var omega2 = omega.clone();
+
   switch ( $('#method').val() ) {
   case '1st':
     break;
   case '2nd':
+    omega2.add(omega_dot_space.clone().multiplyScalar(dt/2.0));
     omega_body.add(omega_dot_body.multiplyScalar(dt / 2.0));
     break;
   case 'f3rd':
@@ -328,6 +338,7 @@ function animate() {
       .add(omega_dot_dot_body.multiplyScalar(dt*dt / 6.0));
     break;
   case 'a2nd':
+    omega2.add(omega_dot_space.clone().cross(omega).multiplyScalar(dt*dt/12.0));
     tmp.crossVectors(omega_dot_body, omega_body);
     omega_body
       .add(omega_dot_body.multiplyScalar(dt / 2.0))
@@ -344,11 +355,17 @@ function animate() {
       .add(tmp);
     break;
   }
+
   omega = omega_body.applyQuaternion(the_q);
   the_q =
     (new THREE.Quaternion())
-    .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
+    .setFromAxisAngle(omega2.clone().normalize(), omega2.length() * dt)
     .multiply(the_q);
+  if ( count++ < 10 ) {
+    console.log(omega.x, omega.y, omega.z);
+    console.log(omega2.x, omega2.y, omega2.z);
+    console.log('---');
+  }
 
   controls.update();
   renderer.render(scene, camera);
