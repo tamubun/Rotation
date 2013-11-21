@@ -5,7 +5,7 @@ var camera, scene, renderer, controls;
 
 var radius1, radius2, height, theta, mom;
 var timer, timer_old, time_offset;
-var I1, I2, I3, E, the_q, scale = 70, shift_x, cylinder_height = 170;
+var I_body, I_body_v, E, the_q, scale = 70, shift_x, cylinder_height = 170;
 var e1 = new THREE.Vector3(1,0,0),
     e2 = new THREE.Vector3(0,1,0),
     e3 = new THREE.Vector3(0,0,1),
@@ -27,19 +27,22 @@ function newSettings() {
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
   }
-  var r = radius1 > radius2 ? radius1 : radius2;
+  var r = radius1 > radius2 ? radius1 : radius2,
+      I1, I2, I3;
 
 //  nodes_line.scale.set(r * 50, height * 50, 1);
 
   I1 = radius2 * radius2 / 4.0 + height * height / 12.0;
   I2 = (radius1 * radius1 + radius2 * radius2) / 4.0;
   I3 = radius1 * radius1 / 4.0 + height * height / 12.0;
+  I_body = new THREE.Matrix3(I1,0,0, 0,I2,0, 0,0,I3);
+  I_body_v = new THREE.Vector3(I1,I2,I3);
 
   var q_inv = the_q.clone().inverse(),
       L_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
-      om1 = L_body.x / I1, om2 = L_body.y / I2, om3 = L_body.z / I3;
+      omega_body = L_body.clone().divide(I_body_v);
+  E = 0.5 * omega_body.clone().multiply(omega_body).dot(I_body_v);
 
-  E = 0.5 * ( I1*om1*om1 + I2*om2*om2 + I3*om3*om3 );
   poinsot.scale.set(
     scale / Math.sqrt(I1),
     scale / Math.sqrt(I2),
@@ -253,21 +256,15 @@ function animate() {
 
   var q_inv = the_q.clone().inverse(),
       L_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
-      omega_body =
-        new THREE.Vector3(L_body.x / I1, L_body.y / I2, L_body.z / I3),
+      omega_body = L_body.clone().divide(I_body_v),
       omega_dot_body = new THREE.Vector3(),
       omega_dot_dot_body = new THREE.Vector3(),
       tmp = new THREE.Vector3(),
       omega = omega_body.clone().applyQuaternion(the_q),
       E_cur = 0.5 *
-      (I1*omega_body.x*omega_body.x +
-       I2*omega_body.y*omega_body.y +
-       I3*omega_body.z*omega_body.z);
+        omega_body.clone().multiply(omega_body).dot(I_body_v);
 
-  omega_dot_body.crossVectors(L_body, omega_body);
-  omega_dot_body.x /= I1;
-  omega_dot_body.y /= I2;
-  omega_dot_body.z /= I3;
+  omega_dot_body.crossVectors(L_body, omega_body).divide(I_body_v);
 /*
   // 多分omega_dot_dotの計算間違ってる。空間座標での式を剛体座標で使ってるので
   tmp.crossVectors(omega_body, L_body);
