@@ -317,7 +317,7 @@ function animate() {
   }
 
   switch ( $('#method').val() ) {
-  case '1th':
+  case '1st':
     break;
   case '2nd':
     omega_body.add(omega_dot_body.multiplyScalar(dt / 2.0));
