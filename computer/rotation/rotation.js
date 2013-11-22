@@ -256,31 +256,50 @@ function animate() {
   timer_old = now;
 
   var q_inv = the_q.clone().inverse(),
-      L_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
+      L = new THREE.Vector3(0, mom, 0),
+      L_body = L.clone().applyQuaternion(q_inv),
+      omega = new THREE.Vector3(),
+      omega_dot = new THREE.Vector3(),
+      omega_dot_dot = new THREE.Vector3(),
       omega_body = L_body.clone().divide(I_body_v),
-      omega_dot_body = new THREE.Vector3(),
-      omega_dot_dot_body = new THREE.Vector3(),
+      omega_body_dot = new THREE.Vector3(),
+      omega_body_dot_dot = new THREE.Vector3(),
       tmp = new THREE.Vector3(),
-      omega = omega_body.clone().applyQuaternion(the_q),
       E_cur = 0.5 *
         omega_body.clone().multiply(omega_body).dot(I_body_v),
       rot = new THREE.Matrix4().makeRotationFromQuaternion(the_q),
-      I_space = rot.clone().multiply(I_body).multiply(rot.clone().transpose());
+      I_space = rot.clone().multiply(I_body).multiply(rot.clone().transpose()),
+      I_space_inv = new THREE.Matrix3().getInverse(I_space);
 
-  var Ls = omega.clone().applyMatrix4(I_space);
+  omega.copy(omega_body).applyQuaternion(the_q);
 
-  omega_dot_body.crossVectors(L_body, omega_body).divide(I_body_v);
-/*
-  // 多分omega_dot_dotの計算間違ってる。空間座標での式を剛体座標で使ってるので
+  // ω' = - I^(-1) { ω x L }
+  omega_dot.copy(L).cross(omega).applyMatrix3(I_space_inv);
+
+  // ω'' = ωxω' + I^(-1) { -ω'xL + ωx(ωxL) }
+  tmp.crossVectors(omega, L);
+  tmp.crossVectors(omega, tmp); // ωx(ωxL)
+  omega_dot_dot.crossVectors(L, omega_dot).add(tmp); // -ω'xL + ωx(ωxL)
+  omega_dot_dot.applyMatrix3(I_space_inv); // I^(-1) { -ω'xL + ωx(ωxL) }
+  tmp.crossVectors(omega, omega_dot); // ωxω'
+  omega_dot_dot.add(tmp);
+
+  // ω_b' = - I_b^(-1) { ω_b x L_b }
+  omega_body_dot.crossVectors(L_body, omega_body).divide(I_body_v);
+
+  // ω_b'' = - I_b^(-1) {ω_b' x L_b + ω_bx(ω_b x L_b) + 2 ωb x (Ib ω_b')}
   tmp.crossVectors(omega_body, L_body);
-  tmp.crossVectors(omega_body, tmp);
-  omega_dot_dot_body.crossVectors(L_body, omega_dot_body).add(tmp);
-  omega_dot_dot_body.x /= I1;
-  omega_dot_dot_body.y /= I2;
-  omega_dot_dot_body.z /= I3;
-  tmp.crossVectors(omega_body, omega_dot_body);
-  omega_dot_dot_body.add(tmp);
-*/
+  tmp.crossVectors(omega_body, tmp); // ω_b x (ω_b x L_b)
+  omega_body_dot_dot // ω_b x (ω_b x L_b) + 2 ωb x (Ib ω_b')
+    .copy(omega_body)
+    .cross(omega_body_dot.clone().multiply(I_body_v))
+    .multiplyScalar(2)
+    .add(tmp);
+  tmp.crossVectors(omega_body_dot, L_body); // ω_b' x L_b
+  omega_body_dot_dot
+    .add(tmp)
+    .divide(I_body_v)
+    .negate();
 
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
@@ -320,38 +339,48 @@ function animate() {
       scale * omega_body.z / Math.sqrt(2 * E_cur));
   }
 
-  var tmp = omega.clone().cross(new THREE.Vector3(0,mom,0)).negate();
-  var I_space_inv = new THREE.Matrix3().getInverse(I_space);
-  var omega_dot_space = tmp.applyMatrix3(I_space_inv);
   var omega2 = omega.clone();
 
   switch ( $('#method').val() ) {
   case '1st':
     break;
   case '2nd':
-    omega2.add(omega_dot_space.clone().multiplyScalar(dt/2.0));
-    omega_body.add(omega_dot_body.multiplyScalar(dt / 2.0));
+    omega2.add(omega_dot.clone().multiplyScalar(dt/2.0));
+    omega_body.add(omega_body_dot.clone().multiplyScalar(dt / 2.0));
     break;
   case 'f3rd':
+    omega2
+      .add(omega_dot.multiplyScalar(dt / 2.0))
+      .add(omega_dot_dot.multiplyScalar(dt*dt / 6.0));
     omega_body
-      .add(omega_dot_body.multiplyScalar(dt / 2.0))
-      .add(omega_dot_dot_body.multiplyScalar(dt*dt / 6.0));
+      .add(omega_body_dot.clone().multiplyScalar(dt / 2.0))
+      .add(omega_body_dot_dot.clone().multiplyScalar(dt*dt / 6.0));
     break;
   case 'a2nd':
-    omega2.add(omega_dot_space.clone().cross(omega).multiplyScalar(dt*dt/12.0));
-    tmp.crossVectors(omega_dot_body, omega_body);
+    omega2
+      .add(omega_dot.multiplyScalar(dt / 2.0))
+      .add(omega_dot.clone().cross(omega).multiplyScalar(dt*dt/12.0));
     omega_body
-      .add(omega_dot_body.multiplyScalar(dt / 2.0))
-      .add(tmp.multiplyScalar(dt*dt / 12.0));
+      .add(omega_body_dot.multiplyScalar(dt / 2.0))
+      .add(omega_body_dot.clone().cross(omega_body)
+           .multiplyScalar(dt*dt / 12.0));
     break;
   case 't3rd':
-    tmp.copy(omega_dot_body)
-      .add(omega_dot_dot_body.clone().multiplyScalar(dt / 3.0))
-      .cross(omega_body)
+    tmp.copy(omega_dot)
+      .add(omega_dot_dot.clone().multiplyScalar(dt / 3.0))
+      .cross(omega)
       .multiplyScalar(dt * dt / 12.0);
+    omega2
+      .add(omega_dot.multiplyScalar(dt / 2.0))
+      .add(omega_dot_dot.multiplyScalar(dt*dt / 6.0))
+      .add(tmp);
+    tmp.copy(omega_body_dot)
+      .add(omega_body_dot_dot.clone().multiplyScalar(dt / 3.0))
+      .cross(omega_body)
+      .multiplyScalar(dt*dt / 12.0);
     omega_body
-      .add(omega_dot_body.multiplyScalar(dt / 2.0))
-      .add(omega_dot_dot_body.multiplyScalar(dt*dt / 6.0))
+      .add(omega_body_dot.multiplyScalar(dt / 2.0))
+      .add(omega_body_dot_dot.multiplyScalar(dt*dt / 6.0))
       .add(tmp);
     break;
   }
@@ -374,6 +403,7 @@ function animate() {
 $(function() {
   $('.settings').change(newSettings);
   $('.configs').change(newConfigs);
+  $('#method').change(function() { count = 0; } );
 /*
   $('#speed').change(function() {
     time_offset = Date.now();
