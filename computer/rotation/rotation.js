@@ -287,19 +287,22 @@ function animate() {
   // ω_b' = - I_b^(-1) { ω_b x L_b }
   omega_body_dot.crossVectors(L_body, omega_body).divide(I_body_v);
 
-  // ω_b'' = - I_b^(-1) {ω_b' x L_b + ω_bx(ω_b x L_b) + 2 ωb x (Ib ω_b')}
+  /* (\frac{d^2 \vec{L}}{dt^2})_s =
+     \dot{\vec{\omega}} \times \vec{L}
+    + 2 \omega \times (\frac{d\vec{L}}{dt})_b
+    +\vec{\omega} \times (\vec{\omega}\times\vec{L})
+    +(\frac{d^2\vec{L}}{dt^2})_b */
+  // ω_b'' = I_b^(-1){-ω_b' x L_b -2 ω_b x (I_b ω_b') - ω_b x (ω_b x L_b)}
   tmp.crossVectors(omega_body, L_body);
-  tmp.crossVectors(omega_body, tmp); // ω_b x (ω_b x L_b)
-  omega_body_dot_dot // ω_b x (ω_b x L_b) + 2 ωb x (Ib ω_b')
-    .copy(omega_body)
-    .cross(omega_body_dot.clone().multiply(I_body_v))
-    .multiplyScalar(2)
+  tmp.crossVectors(tmp, omega_body); // -ω_b x (ω_b x L_b)
+  omega_body_dot_dot // -2 ω_b x (I_b ω_b') - ω_b x (ω_b x L_b)
+    .copy(omega_body_dot).multiply(I_body_v)
+    .cross(omega_body)
+    .multiplyScalar(2.0)
     .add(tmp);
-  tmp.crossVectors(omega_body_dot, L_body); // ω_b' x L_b
   omega_body_dot_dot
-    .add(tmp)
-    .divide(I_body_v)
-    .negate();
+    .add(L_body.clone().cross(omega_body_dot))
+    .divide(I_body_v);
 
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
@@ -388,7 +391,7 @@ function animate() {
   omega = omega_body.applyQuaternion(the_q);
   the_q =
     (new THREE.Quaternion())
-    .setFromAxisAngle(omega2.clone().normalize(), omega2.length() * dt)
+    .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
     .multiply(the_q);
   if ( count++ < 10 ) {
     console.log(omega.x, omega.y, omega.z);
