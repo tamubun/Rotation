@@ -342,31 +342,39 @@ function animate() {
       scale * omega_body.z / Math.sqrt(2 * E_cur));
   }
 
-  var omega2 = omega.clone();
+  var omega2 = omega.clone(),omega_s_dot, omega_s_dot_dot;
+  omega_s_dot = omega_body_dot.clone().applyQuaternion(the_q);
+  tmp.copy(omega_body).cross(omega_body_dot);
+  omega_s_dot_dot = omega_body_dot_dot.clone().add(tmp).applyQuaternion(the_q);
+
+  if ( count++ < 10 ) {
+    console.log(omega_dot.x, omega_dot.y, omega_dot.z, ';', omega_dot_dot.x, omega_dot_dot.y, omega_dot_dot.z);
+    console.log(omega_s_dot.x, omega_s_dot.y, omega_s_dot.z, ';', omega_s_dot_dot.x, omega_s_dot_dot.y, omega_s_dot_dot.z);
+    console.log('---');
+  }
 
   switch ( $('#method').val() ) {
   case '1st':
     break;
   case '2nd':
     omega2.add(omega_dot.clone().multiplyScalar(dt/2.0));
-    omega_body.add(omega_body_dot.clone().multiplyScalar(dt / 2.0));
+    omega.add(omega_s_dot.clone().multiplyScalar(dt/2.0));
     break;
   case 'f3rd':
     omega2
       .add(omega_dot.multiplyScalar(dt / 2.0))
       .add(omega_dot_dot.multiplyScalar(dt*dt / 6.0));
-    omega_body
-      .add(omega_body_dot.clone().multiplyScalar(dt / 2.0))
-      .add(omega_body_dot_dot.clone().multiplyScalar(dt*dt / 6.0));
+    omega
+      .add(omega_s_dot.multiplyScalar(dt / 2.0))
+      .add(omega_s_dot_dot.multiplyScalar(dt*dt / 6.0));
     break;
   case 'a2nd':
     omega2
       .add(omega_dot.multiplyScalar(dt / 2.0))
       .add(omega_dot.clone().cross(omega).multiplyScalar(dt*dt/12.0));
-    omega_body
-      .add(omega_body_dot.multiplyScalar(dt / 2.0))
-      .add(omega_body_dot.clone().cross(omega_body)
-           .multiplyScalar(dt*dt / 12.0));
+    omega
+      .add(omega_s_dot.multiplyScalar(dt / 2.0))
+      .add(omega_s_dot.clone().cross(omega).multiplyScalar(dt*dt/12.0));
     break;
   case 't3rd':
     tmp.copy(omega_dot)
@@ -377,27 +385,21 @@ function animate() {
       .add(omega_dot.multiplyScalar(dt / 2.0))
       .add(omega_dot_dot.multiplyScalar(dt*dt / 6.0))
       .add(tmp);
-    tmp.copy(omega_body_dot)
-      .add(omega_body_dot_dot.clone().multiplyScalar(dt / 3.0))
-      .cross(omega_body)
-      .multiplyScalar(dt*dt / 12.0);
-    omega_body
-      .add(omega_body_dot.multiplyScalar(dt / 2.0))
-      .add(omega_body_dot_dot.multiplyScalar(dt*dt / 6.0))
+    tmp.copy(omega_s_dot)
+      .add(omega_s_dot_dot.clone().multiplyScalar(dt / 3.0))
+      .cross(omega)
+      .multiplyScalar(dt * dt / 12.0);
+    omega
+      .add(omega_s_dot.multiplyScalar(dt / 2.0))
+      .add(omega_s_dot_dot.multiplyScalar(dt*dt / 6.0))
       .add(tmp);
     break;
   }
 
-  omega = omega_body.applyQuaternion(the_q);
   the_q =
     (new THREE.Quaternion())
     .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
     .multiply(the_q);
-  if ( count++ < 10 ) {
-    console.log(omega.x, omega.y, omega.z);
-    console.log(omega2.x, omega2.y, omega2.z);
-    console.log('---');
-  }
 
   controls.update();
   renderer.render(scene, camera);
