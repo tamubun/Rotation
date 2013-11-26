@@ -243,8 +243,6 @@ function init() {
 }
 
 function animate() {
-  requestAnimationFrame(animate);
-
 /*
   timer =
    timer_old + (Date.now()-time_offset) * 0.000004 * Number($('#speed').val());
@@ -253,40 +251,17 @@ function animate() {
       dt = (now - timer_old) * 0.000008 * Number($('#speed').val());
   timer_old = now;
 
+  iterate(dt);
+
   var q_inv = the_q.clone().inverse(),
       L = new THREE.Vector3(0, mom, 0),
       L_body = L.clone().applyQuaternion(q_inv),
       omega = new THREE.Vector3(),
-      omega_dot,
-      omega_dot_dot,
       omega_body = L_body.clone().divide(I_body_v),
-      omega_body_dot = new THREE.Vector3(),
-      omega_body_dot_dot = new THREE.Vector3(),
-      tmp = new THREE.Vector3(),
       E_cur = 0.5 *
         omega_body.clone().multiply(omega_body).dot(I_body_v);
 
   omega.copy(omega_body).applyQuaternion(the_q);
-
-  // ω_b' = - I_b^(-1) { ω_b x L_b }
-  omega_body_dot.crossVectors(L_body, omega_body).divide(I_body_v);
-
-  /* (\frac{d^2 \vec{L}}{dt^2})_s =
-     \dot{\vec{\omega}} \times \vec{L}
-    + 2 \omega \times (\frac{d\vec{L}}{dt})_b
-    +\vec{\omega} \times (\vec{\omega}\times\vec{L})
-    +(\frac{d^2\vec{L}}{dt^2})_b */
-  // ω_b'' = I_b^(-1){-ω_b' x L_b -2 ω_b x (I_b ω_b') - ω_b x (ω_b x L_b)}
-  tmp.crossVectors(omega_body, L_body);
-  tmp.crossVectors(tmp, omega_body); // -ω_b x (ω_b x L_b)
-  omega_body_dot_dot // -2 ω_b x (I_b ω_b') - ω_b x (ω_b x L_b)
-    .copy(omega_body_dot).multiply(I_body_v)
-    .cross(omega_body)
-    .multiplyScalar(2.0)
-    .add(tmp);
-  omega_body_dot_dot
-    .add(L_body.clone().cross(omega_body_dot))
-    .divide(I_body_v);
 
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
@@ -327,6 +302,45 @@ function animate() {
       scale * omega_body.z / Math.sqrt(2 * E_cur));
   }
 
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+function iterate(dt) {
+  var q_inv = the_q.clone().inverse(),
+      L = new THREE.Vector3(0, mom, 0),
+      L_body = L.clone().applyQuaternion(q_inv),
+      omega = new THREE.Vector3(),
+      omega_dot,
+      omega_dot_dot,
+      omega_body = L_body.clone().divide(I_body_v),
+      omega_body_dot = new THREE.Vector3(),
+      omega_body_dot_dot = new THREE.Vector3(),
+      tmp = new THREE.Vector3();
+
+  omega.copy(omega_body).applyQuaternion(the_q);
+
+  // ω_b' = - I_b^(-1) { ω_b x L_b }
+  omega_body_dot.crossVectors(L_body, omega_body).divide(I_body_v);
+
+  /* (\frac{d^2 \vec{L}}{dt^2})_s =
+     \dot{\vec{\omega}} \times \vec{L}
+    + 2 \omega \times (\frac{d\vec{L}}{dt})_b
+    +\vec{\omega} \times (\vec{\omega}\times\vec{L})
+    +(\frac{d^2\vec{L}}{dt^2})_b */
+  // ω_b'' = I_b^(-1){-ω_b' x L_b -2 ω_b x (I_b ω_b') - ω_b x (ω_b x L_b)}
+  tmp.crossVectors(omega_body, L_body);
+  tmp.crossVectors(tmp, omega_body); // -ω_b x (ω_b x L_b)
+  omega_body_dot_dot // -2 ω_b x (I_b ω_b') - ω_b x (ω_b x L_b)
+    .copy(omega_body_dot).multiply(I_body_v)
+    .cross(omega_body)
+    .multiplyScalar(2.0)
+    .add(tmp);
+  omega_body_dot_dot
+    .add(L_body.clone().cross(omega_body_dot))
+    .divide(I_body_v);
+
   omega_dot = omega_body_dot.clone().applyQuaternion(the_q);
   tmp.copy(omega_body).cross(omega_body_dot);
   omega_dot_dot = omega_body_dot_dot.clone().add(tmp).applyQuaternion(the_q);
@@ -363,9 +377,6 @@ function animate() {
     (new THREE.Quaternion())
     .setFromAxisAngle(omega.clone().normalize(), omega.length() * dt)
     .multiply(the_q);
-
-  controls.update();
-  renderer.render(scene, camera);
 }
 
 $(function() {
