@@ -4,7 +4,7 @@ var debug = false;
 var camera, scene, renderer, controls;
 
 var radius1, radius2, height, theta, mom;
-var timer, timer_old, time_offset;
+var last_step, time_offset;
 var I_body, I_body_v, E, the_q, scale = 70, shift_x, cylinder_height = 170;
 var e1 = new THREE.Vector3(1,0,0),
     e2 = new THREE.Vector3(0,1,0),
@@ -236,22 +236,19 @@ function init() {
   renderer.shadowMapEnabled = true;
   $('#arena').append(renderer.domElement);
 
-  timer_old = Date.now();
-/*
+  last_step = 0;
   time_offset = Date.now();
-*/
 }
 
 function animate() {
-/*
-  timer =
-   timer_old + (Date.now()-time_offset) * 0.000004 * Number($('#speed').val());
-*/
-  var now = Date.now(),
-      dt = (now - timer_old) * 0.000008 * Number($('#speed').val());
-  timer_old = now;
+  var speed = Number($('#speed').val()),
+      step = (speed === 0)
+        ? last_step
+        : Math.floor((Date.now() - time_offset) / 4);
 
-  iterate(dt);
+  for ( var s = last_step; s < step; ++s )
+    iterate(0.00004 * speed);
+  last_step = step;
 
   var q_inv = the_q.clone().inverse(),
       L = new THREE.Vector3(0, mom, 0),
@@ -382,12 +379,9 @@ function iterate(dt) {
 $(function() {
   $('.settings').change(newSettings);
   $('.configs').change(newConfigs);
-/*
   $('#speed').change(function() {
     time_offset = Date.now();
-    timer_old = timer;
   });
-*/
   body_coord = $('#body-coord').prop('checked')
   init();
   animate();
