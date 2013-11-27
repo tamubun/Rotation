@@ -54,7 +54,10 @@ function newSettings() {
     scale * Math.sqrt(2 * E * I2),
     scale * Math.sqrt(2 * E * I3));
   binet_s.scale.set(mom * scale, mom * scale, mom * scale);
-  if ( I1 > I3 && Math.sqrt(2 * E * I1) > mom ) { // TODO:
+  console.log(Math.sqrt(2 * E * I1),Math.sqrt(2 * E * I2),Math.sqrt(2 * E * I3), mom);
+
+  if ( I1 > I3 && Math.sqrt(2 * E * I1) > mom ||
+       I3 >= I1 && Math.sqrt(2 * E * I3) > mom ) { // TODO:
     binet.renderDepth = binet.children[0].renderDepth = 0;
     binet_s.renderDepth = 1;
   } else {
