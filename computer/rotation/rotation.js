@@ -30,7 +30,7 @@ function newSettings() {
   var r = radius1 > radius2 ? radius1 : radius2,
       I1, I2, I3;
 
-//  nodes_line.scale.set(r * 50, height * 50, 1);
+  nodes_line.scale.set(r * 50, height * 50, 1);
 
   I1 = radius2 * radius2 / 4.0 + height * height / 12.0;
   I2 = (radius1 * radius1 + radius2 * radius2) / 4.0;
@@ -66,10 +66,9 @@ function newSettings() {
 }
 
 function newConfigs() {
-/*
   nodes_line.visible =
     $('#line-of-nodes').prop('checked');
-*/
+
   ground.visible =
     !$('#noground').prop('checked');
 
@@ -161,7 +160,6 @@ function init() {
   ground.receiveShadow = true;
   scene.add(ground);
 
-/*
   var geo = new THREE.Geometry();
   geo.vertices.push(new THREE.Vector3(0, 0.5025, 0));
   geo.vertices.push(new THREE.Vector3(1.02, 0.5025, 0));
@@ -171,7 +169,6 @@ function init() {
     geo,
     new THREE.LineBasicMaterial({ color: 0x000000 }));
   scene.add(nodes_line);
-*/
 
   var wireframe = new THREE.MeshBasicMaterial(
     { color: 0xffffff, wireframe: true, transparent: true, opacity: 0.3 });
@@ -240,6 +237,11 @@ function init() {
   time_offset = Date.now();
 }
 
+function argFromCos(cos) {
+  cos = cos > 1 ? 1 : (cos < -1 ? -1 : cos);
+  return Math.acos(cos);
+}
+
 function animate() {
   var speed = Number($('#speed').val()),
       step = (speed === 0)
@@ -255,20 +257,23 @@ function animate() {
       L_body = L.clone().applyQuaternion(q_inv),
       omega = new THREE.Vector3(),
       omega_body = L_body.clone().divide(I_body_v),
+      e2_body, q_node = new THREE.Quaternion(),
+      th, phi, // Euler angles
       E_cur = 0.5 *
         omega_body.clone().multiply(omega_body).dot(I_body_v);
 
   omega.copy(omega_body).applyQuaternion(the_q);
+  e2_body = e2.clone().applyQuaternion(the_q);
+  th = argFromCos(e2.dot(e2_body));
+  phi = argFromCos(e2_body.setY(0).normalize().z);
+  if ( e2_body.x < 0 )
+    phi = 2 * Math.PI - phi;
+  q_node.setFromAxisAngle(e2, phi)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(e1, th));
 
   if ( !body_coord ) {
+    nodes_line.quaternion.copy(q_node);
     cylinder.quaternion.copy(the_q);
-
-    /*
-    q1.setFromAxisAngle(e1.clone().negate(), theta);
-    nodes_line.rotation.set(0, phi, theta);
-    nodes_line.quaternion.setFromAxisAngle(e2, phi);
-    nodes_line.quaternion.multiply(q1);
-    */
 
     vect_omega.setLength(7 * omega.length());
     vect_omega.setDirection(omega.clone().normalize());
@@ -277,6 +282,7 @@ function animate() {
       scale * omega.x / Math.sqrt(2 * E_cur) + shift_x,
       scale * omega.y / Math.sqrt(2 * E_cur),
       scale * omega.z / Math.sqrt(2 * E_cur));
+
   } else {
     ground.quaternion.multiplyQuaternions(
       q_inv,
@@ -284,7 +290,7 @@ function animate() {
     ground.position.copy(
       (new THREE.Vector3(0, -cylinder_height, 0)).applyQuaternion(q_inv));
 
-//    nodes_line.rotation.set(0, -psi, 0);
+    nodes_line.quaternion.copy(q_inv).multiply(q_node);
 
     vect_L.setDirection(L_body.clone().normalize());
     vect_omega.setLength(7 * omega_body.length());
