@@ -136,6 +136,13 @@ function init() {
       { ambient: 0xbbbbbb, color: 0xff2222 }));
   mark.position.x = 0.5;
   cylinder.add(mark);
+  var geo = new THREE.Geometry();
+  geo.vertices.push(new THREE.Vector3(0, -0.6, 0));
+  geo.vertices.push(new THREE.Vector3(0, 0.8, 0));
+  cylinder.add(
+    new THREE.Line(
+      geo,
+      new THREE.LineBasicMaterial({ color: 0xff2222 })));
   cylinder.castShadow = true;
   scene.add(cylinder);
 
@@ -163,7 +170,7 @@ function init() {
   ground.receiveShadow = true;
   scene.add(ground);
 
-  var geo = new THREE.Geometry();
+  geo = new THREE.Geometry();
   geo.vertices.push(new THREE.Vector3(0, 0.5025, 0));
   geo.vertices.push(new THREE.Vector3(1.02, 0.5025, 0));
   geo.vertices.push(new THREE.Vector3(1.02, -0.5025, 0));
