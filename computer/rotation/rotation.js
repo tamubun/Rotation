@@ -23,22 +23,22 @@ function newSettings() {
   the_q =
     (new THREE.Quaternion()).setFromAxisAngle(e1.clone().negate(), theta);
 
-  cylinder.scale.set(radius1 * 50, height * 50, radius2 * 50);
+  cylinder.scale.set(radius1 * 50, radius2 * 50, height * 50);
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
   }
   var r = radius1 > radius2 ? radius1 : radius2,
       I1, I2, I3;
 
-  nodes_line.scale.set(r * 50, height * 50, 1);
+  nodes_line.scale.set(r * 50, 1, height * 50);
 
   I1 = radius2 * radius2 / 4.0 + height * height / 12.0;
-  I2 = (radius1 * radius1 + radius2 * radius2) / 4.0;
-  I3 = radius1 * radius1 / 4.0 + height * height / 12.0;
+  I2 = radius1 * radius1 / 4.0 + height * height / 12.0;
+  I3 = (radius1 * radius1 + radius2 * radius2) / 4.0;
   I_body_v = new THREE.Vector3(I1,I2,I3);
 
   var q_inv = the_q.clone().inverse(),
-      L_body = (new THREE.Vector3(0, mom, 0)).applyQuaternion(q_inv),
+      L_body = (new THREE.Vector3(0, 0, mom)).applyQuaternion(q_inv),
       omega_body = L_body.clone().divide(I_body_v);
   E = 0.5 * omega_body.clone().multiply(omega_body).dot(I_body_v);
 
@@ -47,17 +47,16 @@ function newSettings() {
     scale / Math.sqrt(I2),
     scale / Math.sqrt(I3));
   if ( !body_coord )
-    invariable.position.y = scale * Math.sqrt(2 * E) / mom;
+    invariable.position.z = scale * Math.sqrt(2 * E) / mom;
 
   binet.scale.set(
     scale * Math.sqrt(2 * E * I1),
     scale * Math.sqrt(2 * E * I2),
     scale * Math.sqrt(2 * E * I3));
   binet_s.scale.set(mom * scale, mom * scale, mom * scale);
-  console.log(Math.sqrt(2 * E * I1),Math.sqrt(2 * E * I2),Math.sqrt(2 * E * I3), mom);
 
-  if ( I1 > I3 && Math.sqrt(2 * E * I1) > mom ||
-       I3 >= I1 && Math.sqrt(2 * E * I3) > mom ) { // TODO:
+  if ( I1 > I2 && Math.sqrt(2 * E * I1) > mom ||
+       I2 >= I1 && Math.sqrt(2 * E * I2) > mom ) {
     binet.renderDepth = binet.children[0].renderDepth = 0;
     binet_s.renderDepth = 1;
   } else {
@@ -97,10 +96,10 @@ function newConfigs() {
 function changeCoordinateSystem() {
   body_coord = !body_coord;
   if ( !body_coord ) {
-    ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
-    ground.position.set(0, -cylinder_height, 0);
-    vect_L.setDirection(e2);
-    invariable.position.y = scale * Math.sqrt(2 * E) / mom;
+    ground.quaternion.setFromAxisAngle(e1, Math.PI);
+    ground.position.set(0, 0, -cylinder_height);
+    vect_L.setDirection(e3);
+    invariable.position.z = scale * Math.sqrt(2 * E) / mom;
   } else {
     cylinder.quaternion.setFromAxisAngle(e3, 0);
   }
@@ -112,7 +111,8 @@ function init() {
 
   camera = new THREE.PerspectiveCamera(
     45, arena.innerWidth() / arena.innerHeight(), 1, 2000);
-  camera.position.set(0, 30, -750);
+  camera.position.set(0, 750, -30);
+  camera.up = e3.clone();
   camera.lookAt(scene.position);
   controls = new THREE.TrackballControls(camera, arena[0]);
   controls.rotateSpeed = 1.0;
@@ -126,24 +126,27 @@ function init() {
 
   scene.add(new THREE.AmbientLight(0x404040));
 
-  cylinder = new THREE.Mesh(
+  cylinder = new THREE.Object3D();
+  var cylinder_mesh = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 1, 30, 1),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x335577 }));
+  cylinder_mesh.quaternion.setFromAxisAngle(e1, Math.PI/2);
+  cylinder_mesh.castShadow = true;
+  cylinder.add(cylinder_mesh);
   var mark = new THREE.Mesh(
-    new THREE.CubeGeometry(1.02, 1.005, 0.1),
+    new THREE.CubeGeometry(1.02, 0.1, 1.005),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0xff2222 }));
   mark.position.x = 0.5;
   cylinder.add(mark);
   var geo = new THREE.Geometry();
-  geo.vertices.push(new THREE.Vector3(0, -0.6, 0));
-  geo.vertices.push(new THREE.Vector3(0, 0.8, 0));
+  geo.vertices.push(new THREE.Vector3(0, 0, -0.6));
+  geo.vertices.push(new THREE.Vector3(0, 0, 0.8));
   cylinder.add(
     new THREE.Line(
       geo,
       new THREE.LineBasicMaterial({ color: 0xff2222 })));
-  cylinder.castShadow = true;
   scene.add(cylinder);
 
   var ground_material =
@@ -165,31 +168,32 @@ function init() {
         { ambient: 0xbbbbbb, color: 0xff2222 }));
     light.add(light_mark);
   }
-  ground.quaternion.setFromAxisAngle(e1, Math.PI/2);
-  ground.position.y = -cylinder_height;
+  ground.quaternion.setFromAxisAngle(e1, Math.PI);
+  ground.position.z = -cylinder_height;
   ground.receiveShadow = true;
   scene.add(ground);
 
   geo = new THREE.Geometry();
-  geo.vertices.push(new THREE.Vector3(0, 0.5025, 0));
-  geo.vertices.push(new THREE.Vector3(1.02, 0.5025, 0));
-  geo.vertices.push(new THREE.Vector3(1.02, -0.5025, 0));
-  geo.vertices.push(new THREE.Vector3(0, -0.5025, 0));
+  geo.vertices.push(new THREE.Vector3(0, 0, 0.5025));
+  geo.vertices.push(new THREE.Vector3(1.02, 0, 0.5025));
+  geo.vertices.push(new THREE.Vector3(1.02, 0, -0.5025));
+  geo.vertices.push(new THREE.Vector3(0, 0, -0.5025));
   nodes_line = new THREE.Line(
     geo,
     new THREE.LineBasicMaterial({ color: 0x000000 }));
   scene.add(nodes_line);
 
-  var wireframe = new THREE.MeshBasicMaterial(
-    { color: 0xffffff, wireframe: true, transparent: true, opacity: 0.3 });
+  var wire_mesh,
+      wireframe = new THREE.MeshBasicMaterial(
+	{ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.3 });
 
   poinsot = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 16, 20),
+    new THREE.SphereGeometry(1, 32, 40),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0xff2222, transparent: true, opacity: 0.2 }));
-  poinsot.add(new THREE.Mesh(
-    new THREE.SphereGeometry(1, 8, 20),
-    wireframe));
+  wire_mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 20), wireframe);
+  wire_mesh.quaternion.setFromAxisAngle(e1, Math.PI/2.0);
+  poinsot.add(wire_mesh);
   scene.add(poinsot);
 
   var invariable_material =
@@ -208,23 +212,23 @@ function init() {
   scene.add(contact);
 
   binet = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 32, 40),
+    new THREE.SphereGeometry(1, 60, 80),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x2222ff, transparent: true, opacity: 0.2 }));
-  binet.add(new THREE.Mesh(
-    new THREE.SphereGeometry(1, 8, 40),
-    wireframe));
+  wire_mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 20), wireframe);
+  wire_mesh.quaternion.setFromAxisAngle(e1, Math.PI/2.0);
+  binet.add(wire_mesh);
   scene.add(binet);
 
   binet_s = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 32, 40),
+    new THREE.SphereGeometry(1, 60, 80),
     new THREE.MeshLambertMaterial(
       { ambient: 0xbbbbbb, color: 0x22ffaa, transparent: true, opacity: 0.2 }));
   scene.add(binet_s);
 
-  vect_L = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0x22aa55);
+  vect_L = new THREE.ArrowHelper(e3.clone(), zero.clone(), 1, 0x22aa55);
   scene.add(vect_L);
-  vect_omega = new THREE.ArrowHelper(e2.clone(), zero.clone(), 1, 0xaaaa22);
+  vect_omega = new THREE.ArrowHelper(e3.clone(), zero.clone(), 1, 0xaaaa22);
   scene.add(vect_omega);
 
   /* 角度、位置を共有する */
@@ -263,23 +267,25 @@ function animate() {
   last_step = step;
 
   var q_inv = the_q.clone().inverse(),
-      L = new THREE.Vector3(0, mom, 0),
+      L = new THREE.Vector3(0, 0, mom),
       L_body = L.clone().applyQuaternion(q_inv),
       omega = new THREE.Vector3(),
       omega_body = L_body.clone().divide(I_body_v),
-      e2_body, q_node = new THREE.Quaternion(),
+      e3_body,
+      q_node = new THREE.Quaternion(),
       th, phi, // Euler angles
       E_cur = 0.5 *
         omega_body.clone().multiply(omega_body).dot(I_body_v);
 
   omega.copy(omega_body).applyQuaternion(the_q);
-  e2_body = e2.clone().applyQuaternion(the_q);
-  th = argFromCos(e2.dot(e2_body));
-  phi = argFromCos(e2_body.setY(0).normalize().z);
-  if ( e2_body.x < 0 )
+
+  e3_body = e3.clone().applyQuaternion(the_q);
+  th = argFromCos(e3.dot(e3_body));
+  phi = argFromCos(e3_body.setZ(0).normalize().x);
+  if ( e3_body.y < 0 )
     phi = 2 * Math.PI - phi;
-  q_node.setFromAxisAngle(e2, phi)
-    .multiply(new THREE.Quaternion().setFromAxisAngle(e1, th));
+  q_node.setFromAxisAngle(e3, phi)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(e2, th));
 
   if ( !body_coord ) {
     nodes_line.quaternion.copy(q_node);
@@ -292,13 +298,12 @@ function animate() {
       scale * omega.x / Math.sqrt(2 * E_cur) + shift_x,
       scale * omega.y / Math.sqrt(2 * E_cur),
       scale * omega.z / Math.sqrt(2 * E_cur));
-
   } else {
     ground.quaternion.multiplyQuaternions(
       q_inv,
-      (new THREE.Quaternion()).setFromAxisAngle(e1, Math.PI/2.0));
+      (new THREE.Quaternion()).setFromAxisAngle(e1, Math.PI));
     ground.position.copy(
-      (new THREE.Vector3(0, -cylinder_height, 0)).applyQuaternion(q_inv));
+      (new THREE.Vector3(0, 0, -cylinder_height)).applyQuaternion(q_inv));
 
     nodes_line.quaternion.copy(q_inv).multiply(q_node);
 
@@ -306,7 +311,7 @@ function animate() {
     vect_omega.setLength(7 * omega_body.length());
     vect_omega.setDirection(omega_body.clone().normalize());
     invariable.position.copy(
-      (new THREE.Vector3(0, scale * Math.sqrt(2 * E) / mom, 0))
+      (new THREE.Vector3(0, 0, scale * Math.sqrt(2 * E) / mom))
         .applyQuaternion(q_inv));
     invariable.position.x += shift_x;
     contact.position.set(
@@ -322,7 +327,7 @@ function animate() {
 
 function iterate(dt) {
   var q_inv = the_q.clone().inverse(),
-      L = new THREE.Vector3(0, mom, 0),
+      L = new THREE.Vector3(0, 0, mom),
       L_body = L.clone().applyQuaternion(q_inv),
       omega = new THREE.Vector3(),
       omega_dot,
