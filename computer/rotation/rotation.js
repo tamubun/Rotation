@@ -258,12 +258,12 @@ function argFromCos(cos) {
 
 function animate() {
   var speed = Number($('#speed').val()),
-      step = (speed === 0)
-        ? last_step
-        : Math.floor((Date.now() - time_offset) / 4);
+      step = Math.floor((Date.now() - time_offset) / 4);
 
-  for ( var s = last_step; s < step; ++s )
-    iterate(0.00004 * speed);
+  if ( speed > 0 ) {
+    for ( var s = last_step; s < step; ++s )
+      iterate(0.00004 * speed);
+  }
   last_step = step;
 
   var q_inv = the_q.clone().inverse(),
