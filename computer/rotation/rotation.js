@@ -4,8 +4,8 @@ var debug = false;
 var camera, scene, renderer, controls;
 
 var radius1, radius2, height, theta, mom;
-var last_step, time_offset;
-var I_body, I_body_v, E, the_q, scale = 70, shift_x, cylinder_height = 170;
+var last_step, time_offset, last_time; // last_time is for exact solution
+var I_body_v, E, the_q, scale = 70, shift_x, cylinder_height = 170;
 var e1 = new THREE.Vector3(1,0,0),
     e2 = new THREE.Vector3(0,1,0),
     e3 = new THREE.Vector3(0,0,1),
@@ -16,7 +16,11 @@ var body_coord;
 
 function newSettings() {
   radius1 = Number($('#radius1').val());
-  radius2 = Number($('#radius2').val());
+  if ( $('#method').val() === 'exact' ) {
+    radius2 = radius1;
+  } else {
+    radius2 = Number($('#radius2').val());
+  }
   height = Number($('#height').val());
   theta = Math.PI/180.0 * Number($('#theta').val());
   mom = Number($('#mom').val());
@@ -65,6 +69,8 @@ function newSettings() {
   }
 
   vect_L.scale.set(mom * scale, mom * scale, mom * scale);
+
+  last_time = 0;
 }
 
 function newConfigs() {
@@ -247,8 +253,8 @@ function init() {
   renderer.shadowMapEnabled = true;
   $('#arena').append(renderer.domElement);
 
-  last_step = 0;
   time_offset = Date.now();
+  last_step = 0;
 }
 
 function argFromCos(cos) {
@@ -258,11 +264,22 @@ function argFromCos(cos) {
 
 function animate() {
   var speed = Number($('#speed').val()),
-      step = Math.floor((Date.now() - time_offset) / 4);
+      step = Math.floor((Date.now() - time_offset) / 4),
+      euler = {phi: 0, theta: 0, psi: 0};
 
-  if ( speed > 0 ) {
-    for ( var s = last_step; s < step; ++s )
-      iterate(0.00004 * speed);
+  if ( $('#method').val() !== 'exact' ) {
+    if ( speed > 0 ) {
+      for ( var s = last_step; s < step; ++s )
+	iterate(0.00004 * speed);
+    }
+    var e3_body = e3.clone().applyQuaternion(the_q);
+    euler.theta = argFromCos(e3.dot(e3_body));
+    euler.phi = argFromCos(e3_body.setZ(0).normalize().x);
+    if ( e3_body.y < 0 )
+      euler.phi = 2 * Math.PI - euler.phi;
+  } else {
+    euler = exact_solution(
+      speed > 0 ? step : last_step, last_step, 0.00004 * speed);
   }
   last_step = step;
 
@@ -271,21 +288,14 @@ function animate() {
       L_body = L.clone().applyQuaternion(q_inv),
       omega = new THREE.Vector3(),
       omega_body = L_body.clone().divide(I_body_v),
-      e3_body,
       q_node = new THREE.Quaternion(),
-      th, phi, // Euler angles
       E_cur = 0.5 *
         omega_body.clone().multiply(omega_body).dot(I_body_v);
 
   omega.copy(omega_body).applyQuaternion(the_q);
 
-  e3_body = e3.clone().applyQuaternion(the_q);
-  th = argFromCos(e3.dot(e3_body));
-  phi = argFromCos(e3_body.setZ(0).normalize().x);
-  if ( e3_body.y < 0 )
-    phi = 2 * Math.PI - phi;
-  q_node.setFromAxisAngle(e3, phi)
-    .multiply(new THREE.Quaternion().setFromAxisAngle(e2, th));
+  q_node.setFromAxisAngle(e3, euler.phi)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(e2, euler.theta));
 
   if ( !body_coord ) {
     nodes_line.quaternion.copy(q_node);
@@ -323,6 +333,23 @@ function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
+}
+
+function exact_solution(step, last_step, dt) {
+  var omega_phi = mom / I_body_v.x,
+      omega_psi =
+        -(I_body_v.z - I_body_v.x)/I_body_v.z * Math.cos(theta) * omega_phi,
+      time = last_time + (step-last_step) * dt,
+      phi = omega_phi * time,
+      psi = omega_psi * time,
+      q_phi, q_theta, q_psi;
+  q_phi = new THREE.Quaternion().setFromAxisAngle(e3, phi);
+  q_theta = new THREE.Quaternion().setFromAxisAngle(e2, theta);
+  q_psi = new THREE.Quaternion().setFromAxisAngle(e3, psi);
+  the_q.copy(q_phi).multiply(q_theta).multiply(q_psi);
+
+  last_time = time;
+  return {phi: phi, theta: theta, psi:psi};
 }
 
 function iterate(dt) {
@@ -400,9 +427,10 @@ function iterate(dt) {
 $(function() {
   $('.settings').change(newSettings);
   $('.configs').change(newConfigs);
-  $('#speed').change(function() {
-    time_offset = Date.now();
+  $('#method').change(function() {
+    $('#radius2').slider($('#method').val() === 'exact' ? 'disable' : 'enable')
   });
+
   body_coord = $('#body-coord').prop('checked')
   init();
   animate();
