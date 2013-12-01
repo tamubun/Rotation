@@ -1,0 +1,68 @@
+\documentclass{jarticle}
+\title{計算}
+\begin{document}
+任意のベクトル$\mathbf{v}$の二階微分について。ティルダー：剛体系。
+\begin{eqnarray*}
+v_i(t+dt) = R_{ij}(t+dt)\tilde{v}_j(t+dt) \\
+\mbox{lhs} = v_i(t) + \dot{v}_i dt + \frac{1}{2} \ddot{v} dt^2 \\
+\mbox{rhs} = R_{ij}\tilde{v}_j 
++ dt(\dot{R}_{ij}\tilde{v}_j + R_{ij}\dot{\tilde{v}_j})
++\frac{1}{2}dt^2(\ddot{R}_{ij}\tilde{v}_j + 2\dot{R}_{ij}\dot{\tilde{v}_j}+R_{ij}\ddot{\tilde{v}_j})
+\end{eqnarray*}
+で、
+\begin{eqnarray}
+R_{ij}\tilde{v}_j = v_i \\
+R_{ij}\mathbf{e_i} = \tilde{\mathbf{e}}_j \\
+\dot{R_{ij}}R^{-1}_{jk} = -\epsilon_{ikj} \omega_j \label{eqn:a}
+\end{eqnarray}
+を使って、$dt$の一次
+\begin{eqnarray*}
+\dot{v}_i = \dot{R}_{ij}\tilde{v}_j + R_{ij}\dot{\tilde{v}_j}\\
+=\dot{R}_{ij}R^{-1}_{jk} R_{kl} \tilde{v}_l+ R_{ij}\dot{\tilde{v}_j}\\
+=-\epsilon_{ikj}\omega_j v_k + R_{ij}\dot{\tilde{v}_j} \\
+=\epsilon_{ijk}\omega_j v_k + R_{ij}\dot{\tilde{v}_j}
+\end{eqnarray*}
+両辺に$\mathbf{e}_i$を掛けて
+\begin{eqnarray*}
+\left(\frac{d\mathbf{v}}{dt}\right)_{\mbox{space}}=\mathbf{\omega}\times\mathbf{v} + \mathbf{e}_i R_{ij}\dot{\tilde{v}_j} \\
+=\mathbf{\omega}\times\mathbf{v} + \tilde{\mathbf{e}}_j\dot{\tilde{v}_j}\\
+=\mathbf{\omega}\times\mathbf{v} + \left(\frac{d\mathbf{v}}{dt}\right)_{\mbox{body}}
+\end{eqnarray*}
+
+$dt$の二次
+\begin{eqnarray*}
+\ddot{v}_i = \ddot{R}_{ij}\tilde{v}_j + 2\dot{R}_{ij}\dot{\tilde{v}_j}+R_{ij}\ddot{\tilde{v}_j}
+\end{eqnarray*}
+右辺第一項
+\begin{eqnarray*}
+\ddot{R}_{ij}\tilde{v}_j = \ddot{R}_{ij} R^{-1}_{jk} R_{kl}\tilde{v}_l =
+\ddot{R}_{ij} R^{-1}_{jk} v_k
+\end{eqnarray*}
+(\ref{eqn:a})を微分
+\begin{eqnarray*}
+\ddot{R_{ij}}R^{-1}_{jk} + \dot{R_{ij}}\dot{R}^{-1}_{jk} = -\epsilon_{ikj} \dot{\omega}_j \\
+\dot{R_{ij}}\dot{R}^{-1}_{jk} = \dot{R_{ij}}R^{-1}_{jl}R_{lm}\dot{R}^{-1}_{mk}
+= \dot{R_{ij}}R^{-1}_{jl} \dot{R}_{km} R^{-1}_{lm}
+= (\epsilon_{ilj}\omega_j)(\epsilon_{klm}\omega_m)
+\end{eqnarray*}
+右辺第二項
+\begin{eqnarray*}
+2\dot{R}_{ij}\dot{\tilde{v}_j}=2\dot{R}_{ij} R^{-1}_{jk} R_{kl} \dot{\tilde{v}_l} = -2\epsilon_{ikj}\omega_j R_{kl} \dot{\tilde{v}_l}\\
+=-2\epsilon_{ikj}\omega_j (\dot{v}_k-\epsilon_{klm}\omega_l v_m)
+\end{eqnarray*}
+最後の変形は$dt$一次の結果を利用。
+
+これらを集めて、$dt^2$の項は
+\begin{eqnarray*}
+\ddot{v}_i = \epsilon_{ijk}\dot{\omega}_j v_k + 2\epsilon_{ijk}\omega_j \dot{v}_k - (\mathbf{\omega} \times (\mathbf{\omega} \times \mathbf{v}))_i
++R_{ij}\ddot{\tilde{v}_j}
+\end{eqnarray*}
+従って、
+\begin{eqnarray*}
+\left(\frac{d^2\mathbf{v}}{dt^2}\right)_{\mbox{space}}
+=\dot{\mathbf{\omega}}\times\mathbf{v} + 2 \mathbf{\omega} \times \left(\frac{d\mathbf{v}}{dt}\right)_{\mbox{space}} - \mathbf{\omega} \times (\mathbf{\omega} \times \mathbf{v}) +\left(\frac{d^2\mathbf{v}}{dt^2}\right)_{\mbox{body}} \\
+=\dot{\mathbf{\omega}}\times\mathbf{v} + 2 \mathbf{\omega} \times (\left(\frac{d\mathbf{v}}{dt}\right)_{\mbox{body}}+\mathbf{\omega}\times\mathbf{v}) - \mathbf{\omega} \times (\mathbf{\omega} \times \mathbf{v}) +\left(\frac{d^2\mathbf{v}}{dt^2}\right)_{\mbox{body}}\\
+=\dot{\mathbf{\omega}}\times\mathbf{v} + 2 \mathbf{\omega} \times \left(\frac{d\mathbf{v}}{dt}\right)_{\mbox{body}} + \mathbf{\omega} \times (\mathbf{\omega} \times \mathbf{v}) +\left(\frac{d^2\mathbf{v}}{dt^2}\right)_{\mbox{body}}
+\end{eqnarray*}
+
+\end{document}
