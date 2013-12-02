@@ -61,15 +61,17 @@
         <input class='configs' name='binet' id='binet' type='checkbox'>
         <label for='binet'><span style='color:#22f;'>E</span> 一定の面, <span style='color:#2fa;'>| L |</span> 一定の面</label>
       </fieldset>
-      <label for='method' class='select'>計算法:</label>
-      <select name='method' class='settings' id='method' data-inline='true'>
-	<option value='1st'>1st Order</option>
-	<option value='2nd'>2nd Order</option>
-	<option value='f3rd'>False 3rd Order</option>
-	<option value='a2nd'>Augmented 2nd Order</option>
-	<option value='t3rd' selected='selected'>True 3rd Order</option>
-	<option value='exact'>厳密解</option>
-      </select>
+      <div data-role='fieldcontain' style='width: 25em;'>
+	<label for='method' class='select'  style='vertical-align: middle;'>計算法:</label>
+	<select name='method' class='settings' id='method' data-inline='true'>
+	  <option value='1st'>1st Order</option>
+	  <option value='2nd'>2nd Order</option>
+	  <option value='f3rd'>False 3rd Order</option>
+	  <option value='a2nd'>Augmented 2nd Order</option>
+	  <option value='t3rd' selected='selected'>True 3rd Order</option>
+	  <option value='exact'>厳密解 (円柱のみ)</option>
+	</select>
+      </div>
     </form>
     <div data-role="collapsible" data-theme="c" data-content-theme="d">
       <h4>説明</h4>
@@ -94,7 +96,7 @@
       </div>
       <div data-role="collapsible">
 	<h5>|L|</h5>
-	角運動量の大きさです。方向はz軸(画面上)で固定です。角運動量ベクトルは、どの計算法を選んでも、常に保存されています。
+	角運動量の大きさです。方向はz軸向き(画面上向き)で固定です。角運動量ベクトルは、どの計算法を選んでも常に保存されています。
       </div>
       <div data-role="collapsible">
 	<h5><b style='color: green;'>L</b>, <b style='color: #aa2;'>ω</b></h5>
@@ -128,12 +130,17 @@
       <div data-role="collapsible">
 	<h5>計算法</h5>
 	剛体の回転運動を決定するオイラー方程式を計算する方法を指定します。厳密解は今のところ一般の楕円柱には対応してないので、厳密解を選ぶと半径1しか指定できなくなります。厳密解以外の計算法は、<a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.81.8786&rep=rep1&type=pdf">Accurate and Efficient Simulation of Rigid Body Rotations</a>に書かれているもの(の内、最初の五つ)を利用しています。近似法の呼び方もこの論文に書かれたものをそのまま使っています(Orderをどういう意味で使っているか、納得いってません)。
+      </div>
+      <div data-role="collapsible">
+	<h5>座標系について</h5>
+	ページをリロードして視点を変更していない初期画面では、空間座標系のx,y,z軸は、それぞれ、画面左向き、画面から手前に向かってくる向き、画面上向きを向いています。又、剛体座標系のx,y,z軸は、傾きを0度にしたときに空間座標系に重なるようになっています。<br />
+節線を表示するときに使っているオイラー角は、ZXZの順、つまり、<a href="http://irobutsu.a.la9.jp/mybook/ykwkrAM/sim/EulerAngle.html">オイラー角</a>の定義に従っています。
+      </div>
+    </div>
+    <div data-role='footer'>
+      <a href="http://club.pep.ne.jp/~tamubun/" data-icon="home" rel="external">ホーム</a>
+      <a href="http://bunysmc.exblog.jp/" rel="external">ブログ</a>
     </div>
   </div>
-  <div data-role='footer'>
-    <a href="http://club.pep.ne.jp/~tamubun/" data-icon="home" rel="external">ホーム</a>
-    <a href="http://bunysmc.exblog.jp/" rel="external">ブログ</a>
-  </div>
-</div>
 </body>
 </html>
