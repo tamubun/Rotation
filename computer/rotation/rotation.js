@@ -18,8 +18,10 @@ function newSettings() {
   radius1 = Number($('#radius1').val());
   if ( $('#method').val() === 'exact' ) {
     radius2 = radius1;
+    $('#radius2').slider('disable')
   } else {
     radius2 = Number($('#radius2').val());
+    $('#radius2').slider('enable')
   }
   height = Number($('#height').val());
   theta = Math.PI/180.0 * Number($('#theta').val());
@@ -427,9 +429,6 @@ function iterate(dt) {
 $(function() {
   $('.settings').change(newSettings);
   $('.configs').change(newConfigs);
-  $('#method').change(function() {
-    $('#radius2').slider($('#method').val() === 'exact' ? 'disable' : 'enable')
-  });
 
   body_coord = $('#body-coord').prop('checked')
   init();
