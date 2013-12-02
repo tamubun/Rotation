@@ -25,7 +25,7 @@ function newSettings() {
   theta = Math.PI/180.0 * Number($('#theta').val());
   mom = Number($('#mom').val());
   the_q =
-    (new THREE.Quaternion()).setFromAxisAngle(e1.clone().negate(), theta);
+    (new THREE.Quaternion()).setFromAxisAngle(e1.clone(), theta);
 
   cylinder.scale.set(radius1 * 50, radius2 * 50, height * 50);
   if ( !body_coord ) {
@@ -265,7 +265,7 @@ function argFromCos(cos) {
 function animate() {
   var speed = Number($('#speed').val()),
       step = Math.floor((Date.now() - time_offset) / 4),
-      euler = {phi: 0, theta: 0, psi: 0};
+      euler = {phi: 0, theta: 0, psi: null}; // psi は使わない
 
   if ( $('#method').val() !== 'exact' ) {
     if ( speed > 0 ) {
@@ -274,8 +274,8 @@ function animate() {
     }
     var e3_body = e3.clone().applyQuaternion(the_q);
     euler.theta = argFromCos(e3.dot(e3_body));
-    euler.phi = argFromCos(e3_body.setZ(0).normalize().x);
-    if ( e3_body.y < 0 )
+    euler.phi = argFromCos(-e3_body.setZ(0).normalize().y);
+    if ( e3_body.x < 0 )
       euler.phi = 2 * Math.PI - euler.phi;
   } else {
     euler = exact_solution(
@@ -295,7 +295,7 @@ function animate() {
   omega.copy(omega_body).applyQuaternion(the_q);
 
   q_node.setFromAxisAngle(e3, euler.phi)
-    .multiply(new THREE.Quaternion().setFromAxisAngle(e2, euler.theta));
+    .multiply(new THREE.Quaternion().setFromAxisAngle(e1, euler.theta));
 
   if ( !body_coord ) {
     nodes_line.quaternion.copy(q_node);
@@ -344,7 +344,7 @@ function exact_solution(step, last_step, dt) {
       psi = omega_psi * time,
       q_phi, q_theta, q_psi;
   q_phi = new THREE.Quaternion().setFromAxisAngle(e3, phi);
-  q_theta = new THREE.Quaternion().setFromAxisAngle(e2, theta);
+  q_theta = new THREE.Quaternion().setFromAxisAngle(e1, theta);
   q_psi = new THREE.Quaternion().setFromAxisAngle(e3, psi);
   the_q.copy(q_phi).multiply(q_theta).multiply(q_psi);
 
