@@ -32,6 +32,8 @@ function newSettings() {
   cylinder.scale.set(radius1 * 50, radius2 * 50, height * 50);
   if ( !body_coord ) {
     cylinder.quaternion.copy(the_q);
+    poinsot.quaternion.copy(the_q);
+    binet.quaternion.copy(the_q);
   }
   var r = radius1 > radius2 ? radius1 : radius2,
       I1, I2, I3;
@@ -96,6 +98,10 @@ function newConfigs() {
   shift_x =
   vect_L.position.x = invariable.position.x =
     $('#shift').prop('checked') ? 200 : 0;
+  poinsot.position.copy(vect_L.position);
+  binet.position.copy(vect_L.position);
+  binet_s.position.copy(vect_L.position);
+  vect_omega.position.copy(vect_L.position);
 
   if ( body_coord !== $('#body-coord').prop('checked') )
     changeCoordinateSystem();
@@ -105,11 +111,14 @@ function changeCoordinateSystem() {
   body_coord = !body_coord;
   if ( !body_coord ) {
     ground.quaternion.setFromAxisAngle(e1, Math.PI);
+    invariable.quaternion.copy(ground.quaternion);
     ground.position.set(0, 0, -cylinder_height);
     vect_L.setDirection(e3);
     invariable.position.z = scale * Math.sqrt(2 * E) / mom;
   } else {
     cylinder.quaternion.setFromAxisAngle(e3, 0);
+    poinsot.quaternion.copy(cylinder.quaternion);
+    binet.quaternion.copy(cylinder.quaternion);
   }
 }
 
@@ -211,6 +220,7 @@ function init() {
   invariable = new THREE.Mesh(
     new THREE.PlaneGeometry(600, 600), invariable_material);
   invariable.renderDepth = 0;
+  invariable.quaternion.copy(ground.quaternion);
   scene.add(invariable);
 
   contact = new THREE.Mesh(
@@ -239,18 +249,10 @@ function init() {
   vect_omega = new THREE.ArrowHelper(e3.clone(), zero.clone(), 1, 0xaaaa22);
   scene.add(vect_omega);
 
-  /* 角度、位置を共有する */
-  poinsot.quaternion = binet.quaternion =
-    cylinder.quaternion;
-  invariable.quaternion =
-    ground.quaternion;
-  poinsot.position = binet.position = binet_s.position = vect_omega.position =
-    vect_L.position;
-
   newSettings();
   newConfigs();
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(arena.innerWidth(), arena.innerHeight());
   renderer.shadowMapEnabled = true;
   $('#arena').append(renderer.domElement);
@@ -302,6 +304,8 @@ function animate() {
   if ( !body_coord ) {
     nodes_line.quaternion.copy(q_node);
     cylinder.quaternion.copy(the_q);
+    poinsot.quaternion.copy(the_q);
+    binet.quaternion.copy(the_q);
 
     vect_omega.setLength(7 * omega.length());
     vect_omega.setDirection(omega.clone().normalize());
@@ -316,6 +320,7 @@ function animate() {
       (new THREE.Quaternion()).setFromAxisAngle(e1, Math.PI));
     ground.position.copy(
       (new THREE.Vector3(0, 0, -cylinder_height)).applyQuaternion(q_inv));
+    invariable.quaternion.copy(ground.quaternion);
 
     nodes_line.quaternion.copy(q_inv).multiply(q_node);
 
