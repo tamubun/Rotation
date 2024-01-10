@@ -124,6 +124,7 @@ function changeCoordinateSystem() {
 
 function init() {
   var arena = $('#arena');
+  arena.height(document.body.clientHeight*0.5);
   scene = new THREE.Scene();
 
   camera = new THREE.PerspectiveCamera(
